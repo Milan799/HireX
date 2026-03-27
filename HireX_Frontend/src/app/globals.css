@@ -1,0 +1,129 @@
+@import "tailwindcss";
+
+html,
+body {
+  height: 100%;
+  scroll-behavior: smooth;
+}
+
+::selection {
+  background-color: color-mix(in srgb, var(--color-blue-500), transparent 20%);
+  color: white;
+}
+
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background-color: var(--color-slate-300);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: content-box;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-slate-400);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background-color: var(--color-slate-700);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background-color: var(--color-slate-600);
+}
+
+/* Base Global Styles for Interactive Elements & Typography */
+@layer base {
+  button, 
+  [role="button"],
+  a.btn-like {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+  }
+  
+  button:active:not(:disabled),
+  [role="button"]:active:not(:disabled),
+  a.btn-like:active:not(:disabled) {
+    transform: scale(0.97);
+  }
+
+  /* Safe defaults for semantic lists that haven't been customized by utility classes */
+  ul:not([class]), ol:not([class]) {
+    margin-block-start: 1em;
+    margin-block-end: 1em;
+    padding-inline-start: 40px;
+    line-height: 1.6;
+    color: var(--color-slate-700);
+  }
+  .dark ul:not([class]), .dark ol:not([class]) {
+    color: var(--color-slate-300);
+  }
+  ul:not([class]) {
+    list-style-type: disc;
+  }
+  ol:not([class]) {
+    list-style-type: decimal;
+  }
+  li:not([class]) {
+    margin-bottom: 0.5rem;
+  }
+  
+  /* Additional sleek utility classes */
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+  .dark .glass-panel {
+    background: rgba(15, 23, 42, 0.7);
+    backdrop-filter: blur(12px);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+  }
+}
+
+/* Custom Glassmorphism Toasts */
+.Toastify__toast {
+  border-radius: 16px !important;
+  background: rgba(255, 255, 255, 0.6) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border: 1px solid rgba(255, 255, 255, 0.4) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+  color: var(--color-slate-800) !important;
+}
+
+.dark .Toastify__toast {
+  background: rgba(15, 23, 42, 0.6) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  color: var(--color-slate-100) !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.3) !important;
+}
+
+.Toastify__toast-body {
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+}
+
+/* Infinitely Scrolling Marquee Animation */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-100%); }
+}
+
+.animate-marquee {
+  animation: marquee 35s linear infinite;
+  display: flex;
+}
+
+.animate-marquee:hover {
+  animation-play-state: paused;
+}
