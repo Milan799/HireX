@@ -8,7 +8,7 @@ const getJobs = async (req, res) => {
         const { keyword = "", location = "", limit = 10, skip = 0, employerId } = req.query;
 
         const query = {};
-        
+
         if (!employerId) {
             query.status = "Active";
         } else {
@@ -33,9 +33,15 @@ const getJobs = async (req, res) => {
             .populate("employerId", "email fullName")
             .populate("companyId");
 
+        const Application = require("../models/Applications.model");
+        const jobsWithApplicants = await Promise.all(jobs.map(async (job) => {
+            const applicantsCount = await Application.countDocuments({ jobId: job._id });
+            return { ...job.toObject(), applicantsCount };
+        }));
+
         const total = await Job.countDocuments(query);
 
-        return res.status(200).json({ jobs, total, skip, limit });
+        return res.status(200).json({ jobs: jobsWithApplicants, total, skip, limit });
     } catch (error) {
         return res.status(500).json({ message: error.message });
     }
@@ -46,7 +52,7 @@ const getJobs = async (req, res) => {
 const createJob = async (req, res) => {
     try {
         const { id, role } = req.user;
-        
+
         if (role !== "recruiter") {
             return res.status(403).json({ message: "Recruiter access required." });
         }
@@ -54,6 +60,13 @@ const createJob = async (req, res) => {
         const user = await User.findById(id);
         if (!user.companyId) {
             return res.status(400).json({ message: "Please complete your company profile before posting a job." });
+        }
+
+        if (user.subscription?.plan === "free") {
+            const jobCount = await Job.countDocuments({ employerId: id });
+            if (jobCount >= 3) {
+                return res.status(402).json({ message: "Free plan limit reached. Upgrade to Pro to post unlimited jobs." });
+            }
         }
 
         const Company = require("../models/Company.model");
@@ -218,8 +231,8 @@ const getRecommendedJobs = async (req, res) => {
             status: "Active",
             skillsRequired: { $in: candidate.skills.map(s => new RegExp(`^${s}$`, 'i')) }
         })
-        .populate("employerId", "email fullName")
-        .populate("companyId");
+            .populate("employerId", "email fullName")
+            .populate("companyId");
 
         // Calculate a compatibility match score
         const recommendedJobs = jobs.map(job => {

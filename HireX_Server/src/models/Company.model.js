@@ -29,6 +29,25 @@ const companySchema = new mongoose.Schema(
     industry: {
       type: String,
     },
+    phone: {
+      type: String,
+      trim: true,
+    },
+    // KYC Verification Fields
+    kycDocumentType: {
+      type: String,
+    },
+    kycFileUrl: {
+      type: String,
+    },
+    kycStatus: {
+      type: String,
+      enum: ["pending", "verified", "rejected"],
+      default: "pending",
+    },
+    kycRejectionReason: {
+      type: String,
+    },
   },
   { timestamps: true }
 );

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, Bell, ChevronDown, Settings, User, LogOut, Plus } from "lucide-react";
+import { Menu, Bell, ChevronDown, Settings, User, LogOut, Plus, CheckCircle2 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { clearUser } from "@/lib/store/slices/userSlice";
 
@@ -16,7 +16,7 @@ export function EmployerNavbar({ onMenuClick }: Props) {
   const pathname = usePathname();
   const dispatch = useAppDispatch();
   const { data: user } = useAppSelector((state) => state.user);
-  
+
   const [scrolled, setScrolled] = useState(false);
   const [showProfile, setShowProfile] = useState(false);
 
@@ -44,11 +44,10 @@ export function EmployerNavbar({ onMenuClick }: Props) {
 
   return (
     <header
-      className={`sticky top-0 z-30 flex h-16 w-full items-center justify-between px-4 sm:px-6 transition-all duration-300 border-b ${
-        scrolled 
-          ? "bg-white/80 border-slate-200 backdrop-blur-md dark:bg-[#0f0f13]/80 dark:border-white/5 shadow-sm"
-          : "bg-white border-slate-200 dark:bg-[#0f0f13] dark:border-white/5"
-      }`}
+      className={`sticky top-0 z-30 flex h-16 w-full items-center justify-between px-4 sm:px-6 transition-all duration-300 border-b ${scrolled
+        ? "bg-white/80 border-slate-200 backdrop-blur-md dark:bg-[#0f0f13]/80 dark:border-white/5 shadow-sm"
+        : "bg-white border-slate-200 dark:bg-[#0f0f13] dark:border-white/5"
+        }`}
     >
       <div className="flex items-center gap-4">
         <button
@@ -84,11 +83,19 @@ export function EmployerNavbar({ onMenuClick }: Props) {
           >
             <div className="h-8 w-8 overflow-hidden rounded-full border-2 border-slate-200 dark:border-[#0f0f13] shadow-sm dark:bg-violet-900/60 transition-colors">
               <img
-                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.companyName || "C")}&background=6d28d9&color=fff&size=64`}
+                src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.companyId?.name || user?.companyName || user?.fullName || "E")}&background=6d28d9&color=fff&size=64`}
                 alt="Avatar"
                 className="h-full w-full object-cover"
               />
             </div>
+            <span className="hidden sm:block text-sm font-bold text-slate-700 dark:text-slate-300">
+              {user?.companyId?.name || user?.companyName || user?.fullName || "Employer"}
+            </span>
+            {user?.companyId?.kycStatus === 'verified' && (
+              <span title="Verified Company" className="hidden sm:inline-flex items-center">
+                <CheckCircle2 size={16} className="text-emerald-500" />
+              </span>
+            )}
             <ChevronDown size={14} className={`text-slate-400 dark:text-slate-500 transition-transform ${showProfile ? "rotate-180" : ""}`} />
           </button>
 
@@ -104,7 +111,7 @@ export function EmployerNavbar({ onMenuClick }: Props) {
                   className="absolute right-0 top-full mt-2 w-56 overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-xl dark:bg-[#18181f] dark:border-white/10 dark:shadow-2xl z-50 transition-colors duration-300"
                 >
                   <div className="border-b border-slate-100 bg-slate-50/50 p-4 dark:border-white/5 dark:bg-white/5 transition-colors duration-300">
-                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate transition-colors duration-300">{user?.companyName || "Company Name"}</p>
+                    <p className="text-sm font-bold text-slate-900 dark:text-white truncate transition-colors duration-300">{user?.fullName || "Company Name"}</p>
                     <p className="text-xs text-slate-500 truncate transition-colors duration-300">{user?.email || "employer@example.com"}</p>
                   </div>
                   <div className="p-2">
@@ -123,17 +130,13 @@ export function EmployerNavbar({ onMenuClick }: Props) {
                       <Settings size={15} className="text-slate-400 dark:text-slate-500 transition-colors duration-300" /> Settings
                     </Link>
 
-                    <a
-                      href={process.env.NEXT_PUBLIC_SEEKER_URL || "http://localhost:3000"}
-                      onClick={() => setShowProfile(false)}
-                      className="flex items-center gap-2.5 rounded-xl px-3 py-2 mt-1 text-sm font-bold text-violet-600 hover:bg-violet-50 dark:text-violet-400 dark:hover:bg-violet-900/20 bg-violet-50/50 dark:bg-violet-900/10 transition-colors duration-300 border border-violet-100 dark:border-violet-900/30"
-                    >
-                      <User size={15} className="text-violet-500 transition-colors duration-300" /> Switch to Seeker Site
-                    </a>
-                  </div>
-                  <div className="border-t border-slate-100 p-2 dark:border-white/5 transition-colors duration-300">
                     <button
-                      onClick={handleLogout}
+                      onClick={async () => {
+                        localStorage.clear();
+                        dispatch(clearUser());
+                        const { signOut } = await import("next-auth/react");
+                        signOut({ callbackUrl: "/auth/login" });
+                      }}
                       className="flex w-full items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-bold text-red-600 hover:bg-red-50 dark:text-red-400 dark:hover:bg-red-500/10 transition-colors duration-300"
                     >
                       <LogOut size={15} /> Log out

@@ -19,11 +19,13 @@ export default function PostJob() {
     title: "",
     company: user?.companyId?.name || user?.companyName || "",
     location: "Remote",
-    salaryRange: "",
-    experienceLevel: "0-2 Yrs",
+    experienceLevel: "1-3 Years",
+    jobType: "Full-time",
     skillsRequired: "",
     description: "",
   });
+  const [minSalary, setMinSalary] = useState("0");
+  const [maxSalary, setMaxSalary] = useState("3");
   const [submitting, setSubmitting] = useState(false);
 
   const hc = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) =>
@@ -35,13 +37,21 @@ export default function PostJob() {
     try {
       const payload = {
         ...form,
+        salaryRange: `${minSalary}-${maxSalary} Lakhs`,
         skillsRequired: form.skillsRequired.split(",").map((s) => s.trim()).filter(Boolean),
       };
       await axiosClient.post("/jobs", payload);
       notify("Job posted successfully!", "success");
       router.push("/employer/jobs");
     } catch (err: any) {
-      notify(err?.response?.data?.message || err?.message || "Failed to post job", "error");
+      const msg = err?.message || err?.response?.data?.message || (typeof err === "string" ? err : "Failed to post job");
+      notify(msg, "error");
+
+      if (msg.includes("Free plan limit reached") || msg.includes("Upgrade to Pro")) {
+        setTimeout(() => {
+          router.push("/employer/settings?tab=billing");
+        }, 1500); // Give them a slight delay to actually read the Toast notification!
+      }
     } finally {
       setSubmitting(false);
     }
@@ -87,30 +97,46 @@ export default function PostJob() {
               <div>
                 <label className={labelClass}><MapPin size={13} className="text-violet-500 dark:text-violet-400" />Location / Work Type</label>
                 <select name="location" value={form.location} onChange={hc} className={inputClass}>
-                  {["Remote","Hybrid","On-site (Bangalore)","On-site (Mumbai)","On-site (Delhi)","On-site (Hyderabad)","On-site (Pune)"].map(o =>
+                  {["Remote", "Hybrid", "Bangalore", "Mumbai", "Delhi", "Hyderabad", "Pune"].map(o =>
                     <option key={o} value={o} className="bg-white dark:bg-[#18181f]">{o}</option>
                   )}
                 </select>
               </div>
               <div>
-                <label className={labelClass}><IndianRupee size={13} className="text-violet-500 dark:text-violet-400" />Salary Range <span className="normal-case font-medium text-slate-400 dark:text-slate-700">(optional)</span></label>
-                <input name="salaryRange" value={form.salaryRange} onChange={hc} placeholder="e.g. ₹15L – ₹25L" className={inputClass} />
+                <label className={labelClass}><IndianRupee size={13} className="text-violet-500 dark:text-violet-400" />Salary Range (Lakhs)</label>
+                <div className="flex items-center gap-3">
+                  <select value={minSalary} onChange={(e) => setMinSalary(e.target.value)} className={inputClass}>
+                    {[0, 1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 25, 30].map(v => <option key={`min-${v}`} value={v} className="bg-white dark:bg-[#18181f]">{v}</option>)}
+                  </select>
+                  <span className="text-xs font-bold text-slate-400 uppercase">to</span>
+                  <select value={maxSalary} onChange={(e) => setMaxSalary(e.target.value)} className={inputClass}>
+                    {[1, 2, 3, 4, 5, 6, 8, 10, 15, 20, 25, 30, 40, 50, "50+"].map(v => <option key={`max-${v}`} value={v} className="bg-white dark:bg-[#18181f]">{v}</option>)}
+                  </select>
+                </div>
               </div>
             </div>
 
             {/* Experience & Skills */}
-            <div className="grid gap-5 sm:grid-cols-2">
+            <div className="grid gap-5 sm:grid-cols-3">
               <div>
                 <label className={labelClass}><Briefcase size={13} className="text-violet-500 dark:text-violet-400" />Experience Level</label>
                 <select name="experienceLevel" value={form.experienceLevel} onChange={hc} className={inputClass}>
-                  {["0-2 Yrs","2-5 Yrs","5-8 Yrs","8+ Yrs"].map(o =>
+                  {["1-3 Years", "3-5 Years", "5-10 Years", "10+ Years"].map(o =>
+                    <option key={o} value={o} className="bg-white dark:bg-[#18181f]">{o}</option>
+                  )}
+                </select>
+              </div>
+              <div>
+                <label className={labelClass}><Briefcase size={13} className="text-violet-500 dark:text-violet-400" />Job Type</label>
+                <select name="jobType" value={form.jobType} onChange={hc} className={inputClass}>
+                  {["Full-time", "Part-time", "Contract", "Freelance", "Internship"].map(o =>
                     <option key={o} value={o} className="bg-white dark:bg-[#18181f]">{o}</option>
                   )}
                 </select>
               </div>
               <div>
                 <label className={labelClass}><Code2 size={13} className="text-violet-500 dark:text-violet-400" />Required Skills</label>
-                <input required name="skillsRequired" value={form.skillsRequired} onChange={hc} placeholder="React, Node.js, TypeScript" className={inputClass} />
+                <input required name="skillsRequired" value={form.skillsRequired} onChange={hc} placeholder="React, Node.js" className={inputClass} />
                 <p className="mt-1.5 text-[10px] text-slate-500 dark:text-slate-500 transition-colors duration-300">Comma-separated list</p>
               </div>
             </div>

@@ -28,6 +28,7 @@ import {
 } from "@/lib/store/slices/userSlice";
 import { useAppDispatch } from "@/lib/store/hooks";
 import { notify } from "@/lib/utils";
+import Link from "next/link";
 
 type AuthMode = "login" | "register" | "forgot";
 
@@ -42,7 +43,7 @@ type AuthFormValues = {
 
 export default function AuthPage({ params }: { params: Promise<{ method: string }> }) {
   const unwrappedParams = use(params);
-  const method = (unwrappedParams.method as AuthMode) || "login"; 
+  const method = (unwrappedParams.method as AuthMode) || "login";
 
   const [mode, setMode] = useState<AuthMode>(method);
   const [otpStep, setOtpStep] = useState<"request" | "verify" | "reset">("request");
@@ -99,20 +100,20 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
       setForgotEmail("");
       setResetToken("");
     }
-    
+
     // Push route but preserve the form state so the toggle UI and email don't reset
     router.replace(`/auth/${newMode}`);
-    
+
     // Instead of completely resetting, we hard-set the form values we want to keep
     setValue("role", currentRole as "candidate" | "recruiter");
     if (currentEmail) {
-       setValue("email", currentEmail);
+      setValue("email", currentEmail);
     }
     setValue("password", "");
     if (newMode === "register" || newMode === "forgot") {
-       setValue("fullName", "");
-       setValue("confirmPassword", "");
-       setValue("otp", "");
+      setValue("fullName", "");
+      setValue("confirmPassword", "");
+      setValue("otp", "");
     }
   };
 
@@ -149,7 +150,7 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
     if (msgStr.includes("Network") || msgStr.includes("fetch")) return errorMap["fetch failed"];
     if (msgStr.includes("E11000 duplicate key")) return errorMap["User already exists"];
     if (msgStr.includes("Cast to ObjectId failed")) return "Data error. Refresh and retry.";
-    
+
     return msgStr;
   };
 
@@ -159,24 +160,24 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
 
     try {
       if (mode === "login") {
-          const result = await signIn("credentials", {
-            email: data.email,
-            password: data.password,
-            role: data.role, // Pass the selected role explicitly for strict backend validation
-            redirect: false
+        const result = await signIn("credentials", {
+          email: data.email,
+          password: data.password,
+          role: data.role, // Pass the selected role explicitly for strict backend validation
+          redirect: false
         });
-          if (result?.error) {
-            const friendlyError = getErrorMessage(result.error);
-            setError("root", { message: friendlyError });
-            notify(friendlyError, "error");
+        if (result?.error) {
+          const friendlyError = getErrorMessage(result.error);
+          setError("root", { message: friendlyError });
+          notify(friendlyError, "error");
         } else if (result?.ok) {
-            notify("Login successful!", "success");
-            // Determine redirect dynamically based on the verified role
-            if (data.role === 'recruiter') {
-               router.push("/employer/dashboard");
-            } else {
-               router.push("/mnjuser/homepage");
-            }
+          notify("Login successful!", "success");
+          // Determine redirect dynamically based on the verified role
+          if (data.role === 'recruiter') {
+            window.location.href = "/employer/dashboard";
+          } else {
+            window.location.href = "/mnjuser/homepage";
+          }
         }
       } else if (mode === "register") {
         const result = await dispatch(
@@ -187,8 +188,8 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
               password: data.password,
               role: data.role || "candidate",
             },
-            onSuccess: () => {},
-            onError: () => {},
+            onSuccess: () => { },
+            onError: () => { },
           })
         ).unwrap();
         if (result) {
@@ -202,8 +203,8 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
           await dispatch(
             requestOtp({
               payload: { email: data.email },
-              onSuccess: () => {},
-              onError: () => {},
+              onSuccess: () => { },
+              onError: () => { },
             })
           ).unwrap();
           setForgotEmail(data.email);
@@ -223,13 +224,13 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
               },
             })
           ).unwrap();
-          
+
           if (res?.token) {
-             setResetToken(res.token);
-             notify("OTP verified successfully! Please enter your new password.", "success");
-             setOtpStep("reset");
+            setResetToken(res.token);
+            notify("OTP verified successfully! Please enter your new password.", "success");
+            setOtpStep("reset");
           } else {
-             throw new Error("Failed to retrieve reset token.");
+            throw new Error("Failed to retrieve reset token.");
           }
         } else if (otpStep === "reset") {
           const emailForReset = forgotEmail || data.email;
@@ -245,8 +246,8 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
                 password: data.password,
                 token: resetToken
               },
-              onSuccess: () => {},
-              onError: () => {},
+              onSuccess: () => { },
+              onError: () => { },
             })
           ).unwrap();
           notify("Password reset successfully! Please log in.", "success");
@@ -264,27 +265,12 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
     }
   };
 
-  const handleSocialLogin = async (provider: string) => {
+  const handleSocialLogin = (provider: string) => {
     setIsLoading(true);
-    try {
-      const result = await signIn(provider, { 
-        callbackUrl: "/mnjuser/homepage", 
-        redirect: false,
-      });
-      
-      if (result?.error) {
-        notify(`Social login failed: ${getErrorMessage(result.error)}`, "error");
-        setIsLoading(false);
-      } else if (result?.ok) {
-        notify("Login successful!", "success");
-        router.push("/mnjuser/homepage");
-        router.refresh();
-      }
-    } catch (error: any) {
-      console.error("Social login error:", error);
-      notify(`Social login failed: ${error.message || "Please check your provider configuration"}`, "error");
-      setIsLoading(false);
-    }
+    // Let NextAuth handle the redirect naturally to the OAuth provider page
+    signIn(provider, {
+      callbackUrl: "/mnjuser/homepage",
+    });
   };
 
   const slideVariants = {
@@ -302,56 +288,58 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
 
   return (
     <div className="flex min-h-screen w-full bg-slate-50 text-slate-900 transition-colors duration-300 dark:bg-slate-950 dark:text-slate-100">
-      
+
       {/* Left Image Section - Always visible on desktop */}
       <div className="hidden w-1/2 lg:block relative overflow-hidden bg-slate-900">
         <div className="absolute inset-0">
-           <img 
-              src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1600&q=80" 
-              alt="Professional Office" 
-              className="h-full w-full object-cover opacity-60 mix-blend-overlay"
-           />
-           <div className="absolute inset-0 bg-linear-to-br from-blue-900/90 via-slate-900/80 to-indigo-900/90" />
+          <img
+            src="https://images.unsplash.com/photo-1497215728101-856f4ea42174?auto=format&fit=crop&w=1600&q=80"
+            alt="Professional Office"
+            className="h-full w-full object-cover opacity-60 mix-blend-overlay"
+          />
+          <div className="absolute inset-0 bg-linear-to-br from-blue-900/90 via-slate-900/80 to-indigo-900/90" />
         </div>
-        
+
         <div className="relative flex h-full flex-col justify-between p-16 text-white z-10">
-           <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-blue-500/30">
-                 <span className="text-xl font-bold">H</span>
-              </div>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-cyan-400 shadow-lg shadow-blue-500/30">
+              <span className="text-xl font-bold">H</span>
+            </div>
+            <Link href="/">
               <span className="text-3xl font-extrabold tracking-tight">HireX</span>
-           </div>
-           
-           <div className="mb-16 max-w-lg space-y-6">
-              <motion.div 
-                 initial={{ opacity: 0, y: 20 }}
-                 animate={{ opacity: 1, y: 0 }}
-                 transition={{ delay: 0.2, duration: 0.8 }}
-              >
-                 <h2 className="text-5xl font-extrabold leading-tight tracking-tight">
-                    Your next great opportunity, <br/> 
-                    <span className="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">delivered.</span>
-                 </h2>
-              </motion.div>
-              <motion.p 
-                 initial={{ opacity: 0 }}
-                 animate={{ opacity: 1 }}
-                 transition={{ delay: 0.4, duration: 0.8 }}
-                 className="text-lg text-slate-300 leading-relaxed font-medium"
-              >
-                 Join millions of professionals and world-class companies connecting daily on the industry's most powerful recruitment platform.
-              </motion.p>
-           </div>
-           
-           <div className="flex items-center gap-6 text-sm font-medium text-slate-400">
-              <span className="hover:text-white transition-colors cursor-pointer">© 2026 HireX Inc.</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
-              <span className="hover:text-white transition-colors cursor-pointer">Privacy Policy</span>
-              <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
-              <span className="hover:text-white transition-colors cursor-pointer">Terms of Service</span>
-           </div>
+            </Link>
+          </div>
+
+          <div className="mb-16 max-w-lg space-y-6">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2, duration: 0.8 }}
+            >
+              <h2 className="text-5xl font-extrabold leading-tight tracking-tight">
+                Your next great opportunity, <br />
+                <span className="bg-gradient-to-r from-blue-400 to-cyan-300 bg-clip-text text-transparent drop-shadow-sm">delivered.</span>
+              </h2>
+            </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.4, duration: 0.8 }}
+              className="text-lg text-slate-300 leading-relaxed font-medium"
+            >
+              Join millions of professionals and world-class companies connecting daily on the industry's most powerful recruitment platform.
+            </motion.p>
+          </div>
+
+          <div className="flex items-center gap-6 text-sm font-medium text-slate-400">
+            <span className="hover:text-white transition-colors cursor-pointer">© 2026 HireX Inc.</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
+            <span className="hover:text-white transition-colors cursor-pointer">Privacy Policy</span>
+            <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
+            <span className="hover:text-white transition-colors cursor-pointer">Terms of Service</span>
+          </div>
         </div>
-        
+
         {/* Decorative elements */}
         <div className="absolute -bottom-24 -left-24 h-96 w-96 rounded-full bg-blue-500/20 blur-[100px]" />
         <div className="absolute -top-24 -right-24 h-96 w-96 rounded-full bg-indigo-500/20 blur-[100px]" />
@@ -409,24 +397,22 @@ export default function AuthPage({ params }: { params: Promise<{ method: string 
                   <button
                     type="button"
                     onClick={() => {
-                        setValue("role", "candidate");
-                        sessionStorage.setItem("authRole", "candidate");
+                      setValue("role", "candidate");
+                      sessionStorage.setItem("authRole", "candidate");
                     }}
-                    className={`relative flex-1 py-3 text-sm font-bold transition-all z-10 ${
-                      watch("role") === "candidate" ? "text-white drop-shadow-md" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
-                    }`}
+                    className={`relative flex-1 py-3 text-sm font-bold transition-all z-10 ${watch("role") === "candidate" ? "text-white drop-shadow-md" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                      }`}
                   >
                     Job Seeker
                   </button>
                   <button
                     type="button"
                     onClick={() => {
-                        setValue("role", "recruiter");
-                        sessionStorage.setItem("authRole", "recruiter");
+                      setValue("role", "recruiter");
+                      sessionStorage.setItem("authRole", "recruiter");
                     }}
-                    className={`relative flex-1 py-3 text-sm font-bold transition-all z-10 ${
-                      watch("role") === "recruiter" ? "text-white drop-shadow-md" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
-                    }`}
+                    className={`relative flex-1 py-3 text-sm font-bold transition-all z-10 ${watch("role") === "recruiter" ? "text-white drop-shadow-md" : "text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-300"
+                      }`}
                   >
                     Recruiter
                   </button>
@@ -638,7 +624,7 @@ const InputGroup = ({
             initial={{ opacity: 0, height: 0, marginTop: 0 }}
             animate={{ opacity: 1, height: "auto", marginTop: 4 }}
             exit={{ opacity: 0, height: 0, marginTop: 0 }}
-            transition={{ type: "spring", stiffness: 150, damping: 20 }} 
+            transition={{ type: "spring", stiffness: 150, damping: 20 }}
             className="flex items-center gap-1.5 text-xs font-semibold text-red-500 ml-1 dark:text-red-400"
           >
             <FaExclamationCircle />

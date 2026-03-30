@@ -19,7 +19,8 @@ export default function JobDetailsPage(props: { params: Promise<{ id: string }> 
   const router = useRouter();
   const dispatch = useAppDispatch();
   const { selectedJob: job, status } = useAppSelector((state) => state.job);
-  const { data: user } = useAppSelector((state) => state.user);
+  const { data: userResponse } = useAppSelector((state) => state.user);
+  const user = userResponse?.user || userResponse;
 
   const [isApplying, setIsApplying] = useState(false);
   const [showApplyModal, setShowApplyModal] = useState(false);
@@ -35,7 +36,7 @@ export default function JobDetailsPage(props: { params: Promise<{ id: string }> 
   const handleApply = async () => {
     if (!user) {
       notify("Please login to apply for this job", "info");
-      router.push("/login");
+      router.push("/auth/login");
       return;
     }
     
@@ -118,7 +119,33 @@ export default function JobDetailsPage(props: { params: Promise<{ id: string }> 
                 <Share2 size={20} />
               </button>
               <button 
-                onClick={() => setShowApplyModal(true)}
+                onClick={() => {
+                  if (!user) {
+                    notify("Please login to apply for jobs", "info");
+                    router.push("/auth/login");
+                    return;
+                  }
+                  if (user.role && user.role !== "candidate") {
+                    notify("Only candidates can apply for jobs", "error");
+                    return;
+                  }
+              
+                  const missingFields = [];
+                  if (!user.fullName) missingFields.push("Full Name");
+                  if (!user.email) missingFields.push("Email");
+                  if (!user.phone) missingFields.push("Phone");
+                  if (!user.location || (typeof user.location === 'object' && !user.location.city)) missingFields.push("Location");
+                  if (!user.resumeUrl) missingFields.push("Resume Document");
+                  if (!user.skills || user.skills.length === 0) missingFields.push("Key Skills");
+                  if (!user.education || user.education.length === 0) missingFields.push("Education History");
+                                     
+                  if (missingFields.length > 0) {
+                    notify(`Incomplete Profile. Missing details: ${missingFields.join(", ")}`, "error");
+                    router.push("/mnjuser/profile");
+                    return;
+                  }
+                  setShowApplyModal(true);
+                }}
                 className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-blue-600 px-8 py-2.5 text-sm font-black text-white shadow-lg shadow-blue-500/30 hover:bg-blue-700 transition-all sm:flex-none"
               >
                 Apply Now <Send size={16} />

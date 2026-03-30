@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { PublicNavbar } from "@/components/layout/Navbar";
 import { JobFilter } from "@/components/jobs/JobFilter";
 import { JobCard } from "@/components/jobs/JobCard";
@@ -12,23 +13,36 @@ import { notify } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
 
 export default function JobsPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
   const dispatch = useAppDispatch();
   const { jobs, status, total } = useAppSelector((state) => state.job);
+  const { data: userResponse } = useAppSelector((state) => state.user);
+  const user = userResponse?.user || userResponse;
   
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sortBy, setSortBy] = useState("Relevance");
+  const [sortOrder, setSortOrder] = useState("Descending");
   const [page, setPage] = useState(1);
-  const limit = 10;
+  const limit = 50; // Increased to allow functional filtering subset
   
+  // Filter States
+  const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
+
   // Modal state
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [isApplying, setIsApplying] = useState(false);
 
+  const urlLocation = searchParams.get("location") || "";
+  const urlCategory = searchParams.get("category") || "";
+  const urlKeyword = searchParams.get("keyword") || searchParams.get("q") || "";
+
   useEffect(() => {
-    dispatch(fetchJobs({ keyword, skip: (page - 1) * limit, limit }));
-  }, [dispatch, keyword, page]);
+    const combinedKeyword = keyword || urlKeyword || urlCategory;
+    dispatch(fetchJobs({ keyword: combinedKeyword, location: urlLocation, skip: (page - 1) * limit, limit }));
+  }, [dispatch, keyword, page, urlLocation, urlCategory, urlKeyword]);
 
   const handleSearch = () => {
     setKeyword(searchInput);
@@ -36,6 +50,32 @@ export default function JobsPage() {
   };
 
   const handleApply = (id: string) => {
+    if (!user) {
+      notify("Please login to apply for jobs", "info");
+      router.push("/auth/login");
+      return;
+    }
+    
+    if (user.role && user.role !== "candidate") {
+      notify("Only candidates can apply for jobs", "error");
+      return;
+    }
+
+    const missingFields = [];
+    if (!user.fullName) missingFields.push("Full Name");
+    if (!user.email) missingFields.push("Email");
+    if (!user.phone) missingFields.push("Phone");
+    if (!user.location || (typeof user.location === 'object' && !user.location.city)) missingFields.push("Location");
+    if (!user.resumeUrl) missingFields.push("Resume Document");
+    if (!user.skills || user.skills.length === 0) missingFields.push("Key Skills");
+    if (!user.education || user.education.length === 0) missingFields.push("Education History");
+                       
+    if (missingFields.length > 0) {
+      notify(`Incomplete Profile. Missing details: ${missingFields.join(", ")}`, "error");
+      router.push("/mnjuser/profile");
+      return;
+    }
+
     setSelectedJobId(id);
     setCoverLetter("");
   };
@@ -54,7 +94,63 @@ export default function JobsPage() {
     }
   };
 
-  const totalPages = Math.max(1, Math.ceil(total / limit));
+  // Frontend Sorting and Filtering logic
+  let filteredJobs = [...jobs];
+
+  if (sortBy === "Date") {
+    filteredJobs.sort((a, b) => {
+      const timeA = new Date(a.createdAt).getTime();
+      const timeB = new Date(b.createdAt).getTime();
+      return sortOrder === "Ascending" ? timeA - timeB : timeB - timeA;
+    });
+  } else if (sortBy === "Relevance") {
+     // Usually, Ascending or Descending relevance doesn't make strict mathematical sense, 
+     // but we can enforce general text based sorts or flip the array if they request Ascending relevance.
+     if (sortOrder === "Ascending") {
+         filteredJobs.reverse(); // Simplified
+     }
+  }
+
+  // Frontend Filter Enforcement
+  if (activeFilters["Work Mode"]?.length > 0) {
+    filteredJobs = filteredJobs.filter(j => {
+       const loc = j.location?.toLowerCase() || "";
+       if (activeFilters["Work Mode"].includes("Remote") && loc.includes("remote")) return true;
+       if (activeFilters["Work Mode"].includes("Work from office") && !loc.includes("remote")) return true;
+       return false;
+    });
+  }
+
+  if (activeFilters["Experience"]?.length > 0) {
+    filteredJobs = filteredJobs.filter(j => activeFilters["Experience"].some(exp => j.experienceLevel?.includes(exp.split(' ')[0])));
+  }
+
+  // Frontend Company Enforcement
+  if (activeFilters["Company"]?.length > 0) {
+    filteredJobs = filteredJobs.filter(j => {
+       const companyName = j.company || "Unknown Company";
+       return activeFilters["Company"].includes(companyName);
+    });
+  }
+
+  // Frontend Slider Enforcement (Min Salary parsing)
+  if (activeFilters["MinSalary"]?.length > 0) {
+    const minVal = parseInt(activeFilters["MinSalary"][0]);
+    if (minVal > 0) {
+      filteredJobs = filteredJobs.filter(j => {
+        if (!j.salaryRange) return false;
+        const numbers = j.salaryRange.match(/\d+/g);
+        if (numbers && numbers.length > 0) {
+           const jobMax = Math.max(...numbers.map(Number));
+           return jobMax >= minVal;
+        }
+        return false;
+      });
+    }
+  }
+
+  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / limit));
+  const currentJobs = filteredJobs.slice(0, limit); // Simplified pagination on frontend array
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -85,26 +181,37 @@ export default function JobsPage() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-4">
           <div className="hidden lg:block">
-            <JobFilter />
+            <JobFilter jobs={jobs} onChange={(filters: any) => setActiveFilters(filters)} />
           </div>
 
           <div className="lg:col-span-3">
             <div className="mb-6 flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
               <h1 className="text-lg font-bold text-slate-900 dark:text-white">
-                {total > 0 ? `${(page - 1) * limit + 1} - ${Math.min(page * limit, total)} of ${total} Jobs` : "No jobs found"}
+                {filteredJobs.length > 0 ? `${filteredJobs.length} Jobs Found` : "No jobs found"}
               </h1>
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-500">Sort by:</span>
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="text-sm font-semibold text-slate-500">Sort by:</span>
                 <div className="relative">
                   <select 
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
-                    className="appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-4 pr-8 text-sm font-semibold text-slate-700 outline-none focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                    className="appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-4 pr-9 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
                   >
                     <option>Relevance</option>
                     <option>Date</option>
                   </select>
-                  <FaChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-400" />
+                  <FaChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400" />
+                </div>
+                <div className="relative">
+                  <select 
+                    value={sortOrder}
+                    onChange={(e) => setSortOrder(e.target.value)}
+                    className="appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-4 pr-9 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
+                  >
+                    <option>Descending</option>
+                    <option>Ascending</option>
+                  </select>
+                  <FaChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400" />
                 </div>
               </div>
             </div>
@@ -114,11 +221,11 @@ export default function JobsPage() {
                 <div className="text-center py-10 font-bold text-slate-500 dark:text-slate-400 animate-pulse">
                   Loading jobs...
                 </div>
-              ) : jobs.length === 0 ? (
+              ) : currentJobs.length === 0 ? (
                 <div className="text-center py-10 font-medium text-slate-500">
                   No jobs found matching your criteria.
                 </div>
-              ) : jobs.map((job: any) => (
+              ) : currentJobs.map((job: any) => (
                 <JobCard 
                   key={job._id} 
                   id={job._id}
@@ -132,13 +239,13 @@ export default function JobsPage() {
                   description={job.description}
                   tags={job.skillsRequired || []}
                   postedAt={new Date(job.createdAt).toLocaleDateString()}
-                  applicants={Math.floor(Math.random() * 100)} // Mocked for UI until tracked
+                  applicants={job.applicantsCount || 0}
                   onApply={handleApply}
                 />
               ))}
             </div>
 
-            {total > limit && (
+            {totalPages > 1 && (
               <div className="mt-12 flex justify-center">
                 <nav className="flex items-center gap-1 rounded-full bg-white p-1.5 shadow-md shadow-slate-200/50 dark:bg-slate-900 dark:shadow-slate-900/50">
                   <button 

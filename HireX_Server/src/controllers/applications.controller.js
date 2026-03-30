@@ -43,7 +43,7 @@ const getApplications = async (req, res) => {
 const applyToJob = async (req, res) => {
     try {
         const { id, role } = req.user;
-        
+
         if (role !== "candidate") {
             return res.status(403).json({ message: "Only candidates can apply." });
         }
@@ -61,7 +61,7 @@ const applyToJob = async (req, res) => {
         // Calculate AI Match Score
         const candidate = await require("../models/Users.model").findById(id);
         let matchScore = 0;
-        
+
         if (job.skillsRequired && job.skillsRequired.length > 0 && candidate.skills) {
             const candidateSkills = candidate.skills.map(s => s.toLowerCase());
             const matchedSkills = job.skillsRequired.filter(skill => candidateSkills.includes(skill.toLowerCase()));
@@ -87,16 +87,36 @@ const applyToJob = async (req, res) => {
 const updateApplicationStatus = async (req, res) => {
     try {
         const { id, role } = req.user;
-        
+
         if (role !== "recruiter") {
             return res.status(403).json({ message: "Only recruiters can update status." });
         }
 
         const { applicationId, status } = req.body;
 
+        const User = require("../models/Users.model");
+        const currentUser = await User.findById(id);
+
+        const Company = require("../models/Company.model");
+        const company = await Company.findOne({ recruiterId: id });
+
+        // Strict KYC Verification Block
+        const restrictedStatuses = ["Shortlisted", "Interview", "Offer", "Hired"];
+        if ((!company || company.kycStatus === "pending" || company.kycStatus === "rejected") && restrictedStatuses.includes(status)) {
+            return res.status(403).json({ message: "KYC registration strictly required to proceed with hiring or shortlisting candidates." });
+        }
+
+        // Daily Interview Limitations (Meter incremented safely via checkInterviewLimit middleware)
+        if (status === "Interview" && req.interviewsTodayToIncrement !== undefined) {
+            await User.findByIdAndUpdate(id, {
+                "usage.interviewsToday": req.interviewsTodayToIncrement,
+                "usage.lastResetDate": req.usageDateToSet
+            });
+        }
+
         const application = await Application.findById(applicationId).populate("jobId");
         if (!application) return res.status(404).json({ message: "Application not found" });
-        
+
         if (application.jobId.employerId.toString() !== id) {
             return res.status(403).json({ message: "Unauthorized to update this application" });
         }

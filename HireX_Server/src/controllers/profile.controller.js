@@ -5,7 +5,7 @@ const User = require("../models/Users.model");
 const getProfile = async (req, res) => {
     try {
         const { role, keyword } = req.query;
-        
+
         // If query has role=candidate and keyword, handle Resdex search
         if (role === "candidate") {
             // SECURITY PATCH: Ensure only verified recruiters can search the candidate database
@@ -53,7 +53,7 @@ const getProfile = async (req, res) => {
 const updateProfile = async (req, res) => {
     try {
         const { id } = req.user;
-        
+
         const user = await User.findById(id);
         if (!user) {
             return res.status(404).json({ message: "User not found" });
@@ -79,7 +79,26 @@ const updateProfile = async (req, res) => {
     }
 };
 
+// POST /api/profile/upload-photo
+const uploadPhoto = async (req, res) => {
+    try {
+        const { id } = req.user;
+        if (!req.file) return res.status(400).json({ error: "No file provided" });
+
+        const user = await User.findById(id);
+        if (!user) return res.status(404).json({ error: "User not found" });
+
+        user.profilePicture = `/uploads/avatar/${req.file.filename}`;
+        await user.save();
+
+        res.status(200).json({ message: "Photo uploaded", profilePicture: user.profilePicture });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+};
+
 module.exports = {
     getProfile,
-    updateProfile
+    updateProfile,
+    uploadPhoto
 };

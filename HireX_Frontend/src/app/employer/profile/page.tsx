@@ -24,12 +24,12 @@ export default function EmployerProfile() {
       const company = user.companyId || {};
       setForm({
         companyName: company.name || user.companyName || "",
-        fullName:    user.fullName    || "",
-        phone:       user.phone       || "",
-        city:        user.location?.city    || "",
-        country:     user.location?.country || "",
-        website:     company.website || user.website     || "",
-        bio:         company.description || user.bio         || "",
+        fullName: user.fullName || "",
+        phone: user.phone || "",
+        city: user.location?.city || "",
+        country: user.location?.country || "",
+        website: company.website || user.website || "",
+        bio: company.description || user.bio || "",
       });
     }
   }, [user]);
@@ -43,12 +43,12 @@ export default function EmployerProfile() {
       const company = user.companyId || {};
       setForm({
         companyName: company.name || user.companyName || "",
-        fullName:    user.fullName    || "",
-        phone:       user.phone       || "",
-        city:        user.location?.city    || "",
-        country:     user.location?.country || "",
-        website:     company.website || user.website     || "",
-        bio:         company.description || user.bio         || "",
+        fullName: user.fullName || "",
+        phone: user.phone || "",
+        city: user.location?.city || "",
+        country: user.location?.country || "",
+        website: company.website || user.website || "",
+        bio: company.description || user.bio || "",
       });
     }
   };
@@ -58,16 +58,16 @@ export default function EmployerProfile() {
     setSaving(true);
     try {
       await dispatch(updateProfile({ fullName: form.fullName, phone: form.phone, location: { city: form.city, country: form.country }, website: form.website, bio: form.bio })).unwrap();
-      
+
       await axiosClient.post("/company", {
         name: form.companyName,
         description: form.bio,
         website: form.website,
         location: [form.city, form.country].filter(Boolean).join(", "),
       });
-      
+
       await dispatch(fetchCurrentUser()).unwrap();
-      
+
       notify("Profile updated!", "success");
       setEditing(false);
     } catch (err: any) {
@@ -87,12 +87,7 @@ export default function EmployerProfile() {
             <p className="mt-0.5 text-sm text-slate-500 dark:text-slate-500 transition-colors duration-300">Your public employer presence on HireX.</p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            <a
-              href={process.env.NEXT_PUBLIC_SEEKER_URL || "http://localhost:3000"}
-              className="flex items-center gap-2 rounded-xl bg-violet-100 px-4 py-2.5 text-sm font-bold text-violet-700 hover:bg-violet-200 dark:bg-violet-600/15 dark:text-violet-400 dark:hover:bg-violet-600/25 transition-all shadow-sm dark:border dark:border-violet-500/20"
-            >
-              Switch to Candidate Portal
-            </a>
+
             {!editing && (
               <button onClick={() => setEditing(true)}
                 className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm font-bold text-slate-600 hover:bg-slate-50 hover:text-slate-900 dark:border-white/10 dark:bg-white/5 dark:text-slate-300 dark:hover:bg-white/10 dark:hover:text-white transition-all">

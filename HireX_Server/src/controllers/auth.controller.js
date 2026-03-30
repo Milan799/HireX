@@ -187,10 +187,110 @@ const resetPassword = async (req, res) => {
     }   
 }
 
+const oauthLogin = async (req, res) => {
+    try {
+        const { provider, providerId, email, fullName, profilePicture } = req.body;
+
+        if (!email) {
+            return res.status(400).json({ message: "Email is required from OAuth provider." });
+        }
+
+        let user = await userModel.findOne({ email }).select("+password");
+        let isNewUser = false;
+
+        if (user) {
+            // Existing user, update provider details if missing
+            if (user.provider === "local" || !user.providerId) {
+                user.provider = provider;
+                user.providerId = providerId;
+                await user.save();
+            }
+        } else {
+            // New user via OAuth
+            user = await userModel.create({
+                fullName,
+                email,
+                provider,
+                providerId,
+                profilePicture: profilePicture || "",
+                role: "candidate", // default
+                isVerified: true
+            });
+
+            const accessToken = user.generateAccessToken(user);
+            const refreshToken = user.generateRefreshToken(user);
+
+            await AuthModel.create({
+                user: user._id,
+                accessToken,
+                refreshToken,
+                accessTokenExpiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+                refreshTokenExpiresAt: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+            });
+
+            // Send Welcome Email
+            const emailHtml = getRegistrationEmailTemplate(user.fullName, user.role);
+            sendMail({ to: user.email, subject: "Welcome to HireX! 🎉", html: emailHtml }).catch(err => console.error("Registration Mail Error:", err));
+
+            isNewUser = true;
+        }
+
+        const accessToken = user.generateAccessToken(user);
+        const refreshToken = user.generateRefreshToken(user);
+
+        const userData = user.toObject();
+        delete userData.password;
+
+        return res
+            .cookie("accessToken", accessToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 7 * 24 * 60 * 60 * 1000,
+            })
+            .cookie("refreshToken", refreshToken, {
+                httpOnly: true,
+                secure: process.env.NODE_ENV === "production",
+                sameSite: "strict",
+                maxAge: 30 * 24 * 60 * 60 * 1000,
+            })
+            .status(200).json({ token: accessToken, user: userData, isNewUser, message: "OAuth Login successful" });
+    } catch (error) {
+        console.error("OAuth Login Error:", error);
+        return res.status(500).json({ message: "System error during OAuth login." });
+    }
+};
+
+const oauthSetPassword = async (req, res) => {
+    try {
+        const { email, newPassword } = req.body;
+
+        if (!email || !newPassword) {
+            return res.status(400).json({ message: "Email and new password are required." });
+        }
+
+        const user = await userModel.findOne({ email });
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        // We can allow users to update password even if they have one already, but here we expect OAuth users
+        user.password = newPassword;
+        await user.save(); // pre-save hook handles hashing
+
+        return res.status(200).json({ message: "Password set successfully. You can now login with email and password." });
+    } catch (error) {
+        console.error("OAuth Set Password Error:", error);
+        return res.status(500).json({ message: "System error while setting password." });
+    }
+};
+
 module.exports = {
     loginUser,
     registerUser,
     sendForgotPasswordEmail,
     verifyOTP,
-    resetPassword
+    resetPassword,
+    oauthLogin,
+    oauthSetPassword
 };

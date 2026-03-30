@@ -109,7 +109,7 @@ export default function EmployerJobsList() {
 
   return (
     <div className="min-h-full bg-slate-50 px-5 py-6 sm:px-8 dark:bg-[#0f0f13] transition-colors duration-300">
-      
+
       {/* Header & Controls */}
       <div className="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
@@ -139,7 +139,7 @@ export default function EmployerJobsList() {
       {/* Loading Skeleton */}
       {status === "loading" && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {[1,2,3].map(i => <div key={i} className="h-48 animate-pulse rounded-2xl bg-white border border-slate-200 dark:bg-white/5 dark:border-white/5 transition-colors duration-300" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-48 animate-pulse rounded-2xl bg-white border border-slate-200 dark:bg-white/5 dark:border-white/5 transition-colors duration-300" />)}
         </div>
       )}
 
@@ -161,18 +161,17 @@ export default function EmployerJobsList() {
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {filteredJobs.map((job: any) => (
           <div key={job._id} className="group relative flex flex-col justify-between overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 hover:border-violet-300 hover:shadow-lg dark:border-white/8 dark:bg-white/3 dark:hover:border-violet-500/40 transition-all duration-300">
-            
+
             {/* Status Indicator Line */}
             <div className={`absolute inset-x-0 top-0 h-1 ${job.status === "Active" ? "bg-emerald-500" : "bg-slate-400 dark:bg-slate-600"}`} />
 
             <div>
               <div className="mb-3 flex items-start justify-between gap-3">
                 <h3 className="font-bold text-slate-900 group-hover:text-violet-700 dark:text-white dark:group-hover:text-violet-400 transition-colors line-clamp-1">{job.title}</h3>
-                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${
-                  job.status === "Active" 
-                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20" 
+                <span className={`shrink-0 rounded-full px-2 py-0.5 text-[10px] font-black uppercase tracking-wider border ${job.status === "Active"
+                    ? "bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-500/10 dark:text-emerald-400 dark:border-emerald-500/20"
                     : "bg-slate-100 text-slate-600 border-slate-200 dark:bg-white/5 dark:text-slate-400 dark:border-white/10"
-                }`}>
+                  }`}>
                   {job.status}
                 </span>
               </div>
@@ -202,7 +201,7 @@ export default function EmployerJobsList() {
 
             <div className="flex items-center justify-between border-t border-slate-100 pt-4 dark:border-white/5 transition-colors duration-300">
               <Link
-                href={`/employer/dashboard?jobId=${job._id}`}
+                href={`/employer/applications?jobId=${job._id}`}
                 className="flex items-center gap-1.5 text-xs font-bold text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300 transition-colors"
               >
                 <Users size={14} /> View Applicants

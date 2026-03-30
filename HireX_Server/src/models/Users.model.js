@@ -15,6 +15,16 @@ const userSchema = new mongoose.Schema(
       trim: true,
     },
 
+    profilePicture: {
+      type: String,
+      default: "",
+    },
+
+    about: {
+      type: String,
+      trim: true,
+    },
+
     email: {
       type: String,
       required: true,
@@ -22,9 +32,21 @@ const userSchema = new mongoose.Schema(
       lowercase: true,
     },
 
+    provider: {
+      type: String,
+      enum: ["local", "google", "github"],
+      default: "local",
+    },
+
+    providerId: {
+      type: String,
+    },
+
     password: {
       type: String,
-      required: true,
+      required: function() {
+        return this.provider === 'local';
+      },
       select: false,
     },
 
@@ -88,7 +110,7 @@ const userSchema = new mongoose.Schema(
     ],
 
     resumeUrl: String,
-    
+
     // Recruiter Fields
     companyId: {
       type: mongoose.Schema.Types.ObjectId,
@@ -97,6 +119,17 @@ const userSchema = new mongoose.Schema(
     phone: String,
     bio: String,
     website: String,
+
+    kycStatus: {
+      type: String,
+      enum: ["pending", "verified", "rejected"],
+      default: "pending",
+    },
+    kycCompleted: {
+      type: Boolean,
+      default: false,
+    },
+
 
     // Notification Preferences (stored as a map)
     notificationPreferences: {
@@ -117,7 +150,44 @@ const userSchema = new mongoose.Schema(
     },
 
     resetPasswordOtp: String,
-    resetPasswordOtpExpires: Date,
+    resetPasswordExpires: {
+      type: Date,
+    },
+    subscription: {
+      plan: {
+        type: String,
+        enum: ["free", "pro"],
+        default: "free",
+      },
+      billingCycle: {
+        type: String,
+        enum: ["monthly", "yearly"],
+      },
+      startDate: {
+        type: Date,
+      },
+      endDate: {
+        type: Date,
+      },
+      interviewsPerDayLimit: {
+        type: Number,
+        default: 3,
+      },
+      isActive: {
+        type: Boolean,
+        default: true,
+      },
+    },
+    usage: {
+      interviewsToday: {
+        type: Number,
+        default: 0,
+      },
+      lastResetDate: {
+        type: Date,
+        default: Date.now,
+      },
+    },
 
     lastLoginAt: Date,
   },
@@ -126,8 +196,8 @@ const userSchema = new mongoose.Schema(
 
 /* PASSWORD HASH MIDDLEWARE */
 userSchema.pre("save", async function () {
-  // Hash only if password is new or modified
-  if (!this.isModified("password")) return;
+  // Hash only if password is new or modified, and exists
+  if (!this.isModified("password") || !this.password) return;
 
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
@@ -135,19 +205,20 @@ userSchema.pre("save", async function () {
 
 // METHODS OF USER SCHEMA 
 userSchema.methods.comparePassword = async function (enteredPassword) {
+  if (!this.password) return false;
   return await bcrypt.compare(enteredPassword, this.password);
 };
 
 userSchema.methods.generateAccessToken = function (user) {
   const jwt = require("jsonwebtoken");
 
-  return jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET || "fallback_secret",{ expiresIn: "7d" });
+  return jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET || "fallback_secret", { expiresIn: "7d" });
 };
 
 userSchema.methods.generateRefreshToken = function (user) {
   const jwt = require("jsonwebtoken");
 
-  return jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET || "fallback_secret",{ expiresIn: "30d" });
+  return jwt.sign({ id: user._id, email: user.email, role: user.role }, process.env.JWT_SECRET || "fallback_secret", { expiresIn: "30d" });
 };
 
 module.exports = mongoose.model("Users", userSchema);

@@ -9,6 +9,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import "./globals.css";
 import HydrationFix from "@/components/layout/HydrationFix";
+import SetOAuthPasswordModal from "@/components/auth/SetOAuthPasswordModal";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -36,6 +37,7 @@ export default function RootLayout({
                 {children}
                 <FooterWrapper appType={process.env.APP_TYPE} />
                 <ToastContainer />
+                <SetOAuthPasswordModal />
               </ClientLoader>
             </AuthListener>
           </ReduxProvider>

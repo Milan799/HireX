@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Users, Building2, Briefcase, MessageSquare, LogOut, Shield } from "lucide-react";
+import { LayoutDashboard, Users, Building2, Briefcase, MessageSquare, LogOut, Shield, ShieldCheck } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 import { ThemeToggle } from "./ThemeToggle";
 
@@ -11,6 +11,7 @@ const navItems = [
   { name: "Candidates", href: "/users", icon: Users },
   { name: "Employers", href: "/employers", icon: Building2 },
   { name: "Jobs", href: "/jobs", icon: Briefcase },
+  { name: "KYC Approvals", href: "/kyc", icon: ShieldCheck },
   { name: "Messages", href: "/messages", icon: MessageSquare },
 ];
 
@@ -45,21 +46,19 @@ export default function AdminSidebar() {
             <Link
               key={item.href}
               href={item.href}
-              className={`flex items-center space-x-3 px-4 py-3.5 rounded-xl transition-all duration-300 relative overflow-hidden group ${
-                isActive
+              className={`flex items-center space-x-3 px-4 py-3.5 rounded-xl transition-all duration-300 relative overflow-hidden group ${isActive
                   ? "bg-white dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 font-medium shadow-sm dark:shadow-none border border-slate-200/60 dark:border-indigo-500/20"
                   : "text-slate-600 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800/50 hover:text-slate-900 dark:hover:text-white hover:shadow-sm dark:hover:shadow-none"
-              }`}
+                }`}
             >
               <Icon
-                className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${
-                  isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
-                }`}
+                className={`w-5 h-5 transition-transform duration-300 group-hover:scale-110 ${isActive ? "text-indigo-600 dark:text-indigo-400" : "text-slate-400 group-hover:text-slate-600 dark:group-hover:text-slate-300"
+                  }`}
               />
               <span>{item.name}</span>
-              
+
               {isActive && (
-                 <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-indigo-600 dark:bg-indigo-500 rounded-r-full" />
+                <div className="absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 bg-indigo-600 dark:bg-indigo-500 rounded-r-full" />
               )}
             </Link>
           );
