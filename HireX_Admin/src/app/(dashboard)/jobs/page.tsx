@@ -14,7 +14,7 @@ export default function AdminJobsPage() {
   const fetchJobs = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/admin/jobs", {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/jobs", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken || ''}` },
         withCredentials: true
       });
@@ -33,7 +33,7 @@ export default function AdminJobsPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Delete this job posting forever? This will remove all submitted applications.")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/admin/jobs/${id}`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/jobs/${id}`, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken || ''}` },
         withCredentials: true
       });

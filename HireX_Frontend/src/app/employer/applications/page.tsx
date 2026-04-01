@@ -37,7 +37,7 @@ function TrackerContent() {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(atsJobId);
   const [updatingAppId, setUpdatingAppId] = useState<string | null>(null);
 
-  const apiBase = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+  const apiBase = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}";
   const serverBase = apiBase.replace('/api', '');
 
   const plan = user?.subscription?.plan || "free";

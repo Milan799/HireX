@@ -19,7 +19,7 @@ export default function AdminKycPage() {
     const fetchPendingKyc = async () => {
         try {
             setLoading(true);
-            const res = await axios.get("http://localhost:5000/api/kyc/admin/pending", {
+            const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/kyc/admin/pending", {
                 headers: { Authorization: `Bearer ${session?.user?.accessToken || ''}` },
                 withCredentials: true
             });
@@ -41,7 +41,7 @@ export default function AdminKycPage() {
         }
 
         try {
-            await axios.put(`http://localhost:5000/api/kyc/admin/evaluate/${docId}`, {
+            await axios.put(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/kyc/admin/evaluate/${docId}`, {
                 status,
                 rejectionReason: reason || ""
             }, {

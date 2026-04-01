@@ -14,7 +14,7 @@ export default function AdminUsersPage() {
   const fetchUsers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/admin/users", {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/users", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken || ''}` },
         withCredentials: true
       });
@@ -33,7 +33,7 @@ export default function AdminUsersPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to completely erase this candidate? All associated applications will be destroyed.")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/admin/users/${id}`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/users/${id}`, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken || ''}` },
         withCredentials: true
       });

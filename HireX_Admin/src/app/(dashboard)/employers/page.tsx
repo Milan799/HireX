@@ -14,7 +14,7 @@ export default function AdminEmployersPage() {
   const fetchEmployers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get("http://localhost:5000/api/admin/employers", {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/employers", {
         headers: { Authorization: `Bearer ${session?.user?.accessToken || ''}` },
         withCredentials: true
       });
@@ -33,7 +33,7 @@ export default function AdminEmployersPage() {
   const handleDelete = async (id: string) => {
     if (!confirm("Are you sure you want to permanently delete this employer footprint? Jobs attached will be wiped.")) return;
     try {
-      await axios.delete(`http://localhost:5000/api/admin/employers/${id}`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/employers/${id}`, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken || ''}` },
         withCredentials: true
       });
