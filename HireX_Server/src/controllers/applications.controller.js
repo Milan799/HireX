@@ -123,6 +123,8 @@ const updateApplicationStatus = async (req, res) => {
 
         application.status = status;
         await application.save();
+        
+        await application.populate("candidateId", "fullName email resumeUrl skills experience education phone location");
 
         return res.status(200).json({ message: "Status updated successfully", application });
     } catch (error) {

@@ -27,12 +27,12 @@ const sidebarGroups = [
       { href: "/employer/applications", label: "Applications", icon: FileText },
     ],
   },
-  {
-    title: "Talent",
-    links: [
-      { href: "/employer/resdex", label: "Candidate Search", icon: Search },
-    ],
-  },
+  // {
+  //   title: "Talent",
+  //   links: [
+  //     { href: "/employer/resdex", label: "Candidate Search", icon: Search },
+  //   ],
+  // },
   {
     title: "Account",
     links: [
@@ -129,7 +129,7 @@ export function EmployerSidebar({ className }: { className?: string }) {
       </nav>
 
       {/* User + Logout */}
-      <div className="shrink-0 border-t border-slate-200 dark:border-white/5 p-3 transition-colors duration-300">
+      {/* <div className="shrink-0 border-t border-slate-200 dark:border-white/5 p-3 transition-colors duration-300">
         <div className="flex items-center gap-3 rounded-xl p-2 mb-1">
           <div className="h-8 w-8 shrink-0 overflow-hidden rounded-lg bg-violet-100 border border-violet-200 dark:bg-violet-900/50 dark:border-violet-700/40">
             <img
@@ -150,7 +150,7 @@ export function EmployerSidebar({ className }: { className?: string }) {
           <LogOut size={16} />
           Sign Out
         </button>
-      </div>
+      </div> */}
     </div>
   );
 }

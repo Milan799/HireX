@@ -1,11 +1,12 @@
 const Job = require("../models/Jobs.model");
 const User = require("../models/Users.model");
+const Application = require("../models/Applications.model");
 
 // GET /api/jobs
 // Fetch all active jobs or jobs for a specific employer
 const getJobs = async (req, res) => {
     try {
-        const { keyword = "", location = "", limit = 10, skip = 0, employerId } = req.query;
+        const { keyword = "", location = "", limit = 10, skip = 0, employerId, sortBy = "Date", sortOrder = "Descending" } = req.query;
 
         const query = {};
 
@@ -26,21 +27,51 @@ const getJobs = async (req, res) => {
             query.location = { $regex: location, $options: "i" };
         }
 
+        let sortConfig = { createdAt: -1 };
+        
+        if (sortBy === "Date") {
+            sortConfig = { createdAt: sortOrder === "Ascending" ? 1 : -1 };
+        } else if (sortBy === "Relevance") {
+            // Note: MongoDB text search is needed for true relevance, but as a fallback
+            // we sort by title alphabetically for relevance approximation if keyword is present
+            // If no keyword, keep it by date.
+            if (keyword) {
+                sortConfig = { title: sortOrder === "Ascending" ? 1 : -1 };
+            } else {
+                sortConfig = { createdAt: sortOrder === "Ascending" ? 1 : -1 };
+            }
+        }
+
         const jobs = await Job.find(query)
-            .sort({ createdAt: -1 })
+            .sort(sortConfig)
             .skip(Number(skip))
             .limit(Number(limit))
             .populate("employerId", "email fullName")
             .populate("companyId");
 
         const Application = require("../models/Applications.model");
-        const jobsWithApplicants = await Promise.all(jobs.map(async (job) => {
-            const applicantsCount = await Application.countDocuments({ jobId: job._id });
-            return { ...job.toObject(), applicantsCount };
-        }));
+       
 
+        const jobsWithApplicants = await Promise.all(
+            jobs.map(async (job) => {
+                const applicantsCount = await Application.countDocuments({ jobId: job._id });
+                
+                // ✅ NEW: Count hired employees for this company
+               const hiredCount = await Application.countDocuments({
+  status: "Hired",
+  jobId: {
+    $in: await Job.find({ companyId: job.companyId }).distinct("_id")
+  }
+});
+                
+                return {
+  ...job.toObject(),
+  applicantsCount,
+  hiredCount
+};
+            })
+        );
         const total = await Job.countDocuments(query);
-
         return res.status(200).json({ jobs: jobsWithApplicants, total, skip, limit });
     } catch (error) {
         return res.status(500).json({ message: error.message });

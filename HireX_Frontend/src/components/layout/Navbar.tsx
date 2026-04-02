@@ -2,7 +2,7 @@
 "use client";
 import { useState, useEffect, useMemo } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import { RxHamburgerMenu } from "react-icons/rx";
 import { IoClose, IoChevronDown } from "react-icons/io5";
@@ -29,7 +29,7 @@ const navItems = [
         items: [
           { label: "Jobs in Delhi", href: "/jobs?location=Delhi" },
           { label: "Jobs in Mumbai", href: "/jobs?location=Mumbai" },
-          { label: "Jobs in Bengaluru", href: "/jobs?location=Bengaluru" },
+          { label: "Jobs in Bangalore", href: "/jobs?location=Bangalore" },
           { label: "Jobs in Hyderabad", href: "/jobs?location=Hyderabad" },
           { label: "Jobs in Pune", href: "/jobs?location=Pune" },
           { label: "Remote Jobs", href: "/jobs?type=remote" },
@@ -51,24 +51,24 @@ const navItems = [
     href: "/companies",
     label: "Companies",
     columns: [
-      {
-        title: "Explore by Type",
-        items: [
-          { label: "Unicorns", href: "/companies?type=unicorn" },
-          { label: "MNC", href: "/companies?type=mnc" },
-          { label: "Startups", href: "/companies?type=startup" },
-          { label: "Product Based", href: "/companies?type=product" },
-          { label: "Internet Companies", href: "/companies?type=internet" },
-        ]
-      },
+      // {
+      //   title: "Explore by Type",
+      //   items: [
+      //     { label: "Unicorns", href: "/companies?type=unicorn" },
+      //     { label: "MNC", href: "/companies?type=mnc" },
+      //     { label: "Startups", href: "/companies?type=startup" },
+      //     { label: "Product Based", href: "/companies?type=product" },
+      //     { label: "Internet Companies", href: "/companies?type=internet" },
+      //   ]
+      // },
       {
         title: "Top Collections",
         items: [
           { label: "Top Companies", href: "/companies?sort=top" },
           { label: "IT Companies", href: "/companies?category=it" },
-          { label: "Fintech Companies", href: "/companies?category=fintech" },
-          { label: "Sponsored Companies", href: "/companies?sponsored=true" },
-          { label: "Featured Companies", href: "/companies?featured=true" },
+          // { label: "Fintech Companies", href: "/companies?category=fintech" },
+          // { label: "Sponsored Companies", href: "/companies?sponsored=true" },
+          // { label: "Featured Companies", href: "/companies?featured=true" },
         ]
       }
     ]
@@ -131,21 +131,21 @@ const recruiterNavItems = [
       }
     ]
   },
-  {
-    href: "/employer/resdex",
-    label: "Candidates",
-    columns: [
-      {
-        title: "Sourcing",
-        items: [
-          { label: "Search Resumes", href: "/employer/resdex" },
-          { label: "Saved Candidates", href: "/employer/resdex" },
-          { label: "AI Matching", href: "/employer/resdex" },
-          { label: "Campus Hiring", href: "/employer/resdex" },
-        ]
-      }
-    ]
-  }
+  // {
+  //   href: "/employer/resdex",
+  //   label: "Candidates",
+  //   columns: [
+  //     {
+  //       title: "Sourcing",
+  //       items: [
+  //         { label: "Search Resumes", href: "/employer/resdex" },
+  //         { label: "Saved Candidates", href: "/employer/resdex" },
+  //         { label: "AI Matching", href: "/employer/resdex" },
+  //         { label: "Campus Hiring", href: "/employer/resdex" },
+  //       ]
+  //     }
+  //   ]
+  // }
 ];
 
 import { FaSearch, FaBell, FaUserCircle, FaBars, FaCrown, FaNewspaper, FaCog, FaQuestionCircle, FaSignOutAlt, FaChevronRight } from "react-icons/fa";
@@ -157,6 +157,8 @@ import { signOut, useSession } from "next-auth/react";
 
 export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const [searchQuery, setSearchQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [hoveredNav, setHoveredNav] = useState<string | null>(null);
@@ -188,6 +190,14 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
 
   const toggle = () => setOpen((v) => !v);
   const close = () => setOpen(false);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      router.push(`/jobs?q=${encodeURIComponent(searchQuery.trim())}`);
+      close();
+    }
+  };
 
   const ProfileMenuPopUp = () => (
     <AnimatePresence>
@@ -233,7 +243,7 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">Track your applications</span>
                 </Link>
               )}
-              <Link onClick={() => setProfileDropdownOpen(false)} href={user?.role === "recruiter" ? "/employer/settings" : "/mnjuser/settings"} className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-300 dark:hover:bg-slate-900/50 transition-colors">Settings</Link>
+              {/* <Link onClick={() => setProfileDropdownOpen(false)} href={user?.role === "recruiter" ? "/employer/settings" : "/mnjuser/settings"} className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-300 dark:hover:bg-slate-900/50 transition-colors">Settings</Link> */}
 
 
             </div>
@@ -440,18 +450,20 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
 
             {/* Centered Search Bar */}
             <div className="hidden flex-1 max-w-2xl mx-4 md:block">
-              <div className="flex items-center rounded-full bg-slate-50 border border-slate-200 px-2 py-1.5 dark:bg-slate-900 dark:border-slate-700 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
+              <form onSubmit={handleSearch} className="flex items-center rounded-full bg-slate-50 border border-slate-200 px-2 py-1.5 dark:bg-slate-900 dark:border-slate-700 shadow-sm focus-within:ring-2 focus-within:ring-blue-500/20 focus-within:border-blue-500 transition-all">
                 <FaSearch className="ml-3 text-slate-400" />
                 <input
                   suppressHydrationWarning
                   type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="Search jobs, companies, skills..."
                   className="flex-1 bg-transparent px-3 py-1.5 text-sm outline-none text-slate-700 dark:text-slate-200 placeholder:text-slate-400 font-medium"
                 />
-                <button className="rounded-full bg-blue-600 px-5 py-1.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shadow-sm">
+                <button type="submit" className="rounded-full bg-blue-600 px-5 py-1.5 text-xs font-bold text-white hover:bg-blue-700 transition-colors shadow-sm">
                   Search
                 </button>
-              </div>
+              </form>
             </div>
 
             <div className="flex items-center gap-4">
@@ -628,15 +640,19 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
         {/* Search Bar (Visible only on Jobs page) */}
         {showSearch && (
           <div className="hidden max-w-md flex-1 md:block">
-            <div className="group relative">
+            <form onSubmit={handleSearch} className="group relative">
               <input
                 suppressHydrationWarning
                 type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search jobs, skills, companies..."
                 className="w-full rounded-full border border-slate-200 bg-slate-50/80 backdrop-blur-sm py-2.5 pl-11 pr-4 text-sm font-medium outline-none transition-all duration-300 placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 group-hover:border-blue-300 group-hover:bg-white group-hover:shadow-lg group-hover:shadow-blue-500/5 dark:border-slate-700 dark:bg-slate-900/80 dark:text-white dark:placeholder:text-slate-500 dark:focus:border-blue-400 dark:focus:bg-slate-950 dark:focus:ring-blue-400/10 dark:group-hover:border-slate-600 dark:group-hover:bg-slate-950"
               />
-              <FaSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors duration-300 group-hover:text-blue-500 group-focus-within:text-blue-600 dark:text-slate-500 dark:group-hover:text-blue-400 dark:group-focus-within:text-blue-400" />
-            </div>
+              <button type="submit" className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center cursor-pointer">
+                <FaSearch className="text-slate-400 transition-colors duration-300 group-hover:text-blue-500 group-focus-within:text-blue-600 dark:text-slate-500 dark:group-hover:text-blue-400 dark:group-focus-within:text-blue-400" />
+              </button>
+            </form>
           </div>
         )}
 

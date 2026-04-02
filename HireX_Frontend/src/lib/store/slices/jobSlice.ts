@@ -6,7 +6,7 @@ import axiosClient from "@/lib/axios/axiosClientInstance";
 export const fetchJobs = createAsyncThunk(
     "jobs/fetchJobs",
     async (
-        params: { keyword?: string; location?: string; skip?: number; limit?: number; employerId?: string },
+        params: { keyword?: string; location?: string; skip?: number; limit?: number; employerId?: string; sortBy?: string; sortOrder?: string },
         { rejectWithValue }
     ) => {
         try {

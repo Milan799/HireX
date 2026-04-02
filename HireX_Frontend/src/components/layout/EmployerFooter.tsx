@@ -11,7 +11,7 @@ export function EmployerFooter() {
           <div className="space-y-4">
             <Link href="/" className="flex items-center gap-2">
                <span className="bg-linear-to-r from-indigo-500 via-fuchsia-500 to-cyan-400 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
-                Hire<span className="text-slate-900 dark:text-slate-50">X Enterprise</span>
+                Hire<span className="text-slate-900 dark:text-slate-50">X</span>
               </span>
             </Link>
             <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm">
@@ -32,14 +32,14 @@ export function EmployerFooter() {
             </h3>
             <ul className="space-y-3.5 text-sm text-slate-600 dark:text-slate-400">
               <li><FooterLink href="/employer/jobs/new">Post a Position</FooterLink></li>
-              <li><FooterLink href="/employer/dashboard">Applicant Tracking</FooterLink></li>
-              <li><FooterLink href="/employer/resdex">AI Resume Search</FooterLink></li>
-              <li><FooterLink href="/employer/branding">Employer Branding</FooterLink></li>
+              <li><FooterLink href="/employer/applications">Applicant Tracking</FooterLink></li>
+              {/* <li><FooterLink href="/employer/resdex">AI Resume Search</FooterLink></li> */}
+              {/* <li><FooterLink href="/employer/branding">Employer Branding</FooterLink></li> */}
             </ul>
           </div>
 
           {/* Links Column 2: Resources */}
-          <div>
+          {/* <div>
             <h3 className="mb-5 text-sm font-bold uppercase tracking-[0.15em] text-slate-900 dark:text-slate-100">
               Resources
             </h3>
@@ -49,7 +49,7 @@ export function EmployerFooter() {
               <li><FooterLink href="/employer/blog">Recruitment Blog</FooterLink></li>
               <li><FooterLink href="/employer/help">Help Center</FooterLink></li>
             </ul>
-          </div>
+          </div> */}
 
           {/* Links Column 3: Company */}
           <div>
@@ -67,12 +67,12 @@ export function EmployerFooter() {
 
         <div className="mt-16 border-t border-slate-200 pt-8 dark:border-white/10 flex flex-col items-center justify-between gap-4 sm:flex-row">
           <p className="text-xs text-slate-500 font-medium">
-            &copy; {new Date().getFullYear()} HireX Enterprise Inc. All rights reserved.
+            &copy; {new Date().getFullYear()} HireX Inc. All rights reserved.
           </p>
           <div className="flex gap-6 text-xs text-slate-500 font-medium">
             <Link href="/privacy" className="transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Privacy Policy</Link>
             <Link href="/terms" className="transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Terms of Service</Link>
-            <Link href="/security" className="transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Security</Link>
+            <Link href="#" className="transition-colors hover:text-indigo-600 dark:hover:text-indigo-400">Security</Link>
           </div>
         </div>
       </div>

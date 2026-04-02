@@ -47,7 +47,7 @@ export default function EmployerLayout({ children }: { children: React.ReactNode
 
         <main className="flex-1 overflow-y-auto">
           {children}
-          <EmployerFooter />
+          {/* <EmployerFooter /> */}
         </main>
       </div>
 

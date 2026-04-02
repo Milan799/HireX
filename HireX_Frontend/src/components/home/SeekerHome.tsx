@@ -10,6 +10,7 @@ import {
   FaChartBar, FaLaptopCode, FaGraduationCap, FaChevronRight,
   FaArrowRight, FaUsers, FaChartLine, FaCheckCircle
 } from "react-icons/fa";
+import { useRouter } from "next/navigation";
 
 // Custom Hook for Number Count Animation
 function useCounter(endValue: number, duration: number = 2) {
@@ -55,6 +56,7 @@ export default function Home() {
       try {
         const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
         const res = await fetch(`${apiUrl}/home`);
+        
         if (res.ok) {
           const json = await res.json();
           setData(json);
@@ -63,6 +65,7 @@ export default function Home() {
         console.error("Failed to fetch home data", err);
       } finally {
         setLoading(false);
+        
       }
     };
     fetchHomeData();
@@ -140,7 +143,7 @@ export default function Home() {
                 <span className="relative bg-linear-to-r from-blue-600 via-indigo-500 to-purple-600 bg-clip-text text-transparent drop-shadow-md">
                   ambitious professionals.
                 </span>
-                <img src="/line-shape.svg" alt="" className="absolute -bottom-4 left-0 w-full opacity-50 dark:opacity-30 hidden sm:block" />
+                {/* <img src="/line-shape.svg" alt="" className="absolute -bottom-4 left-0 w-full opacity-50 dark:opacity-30 hidden sm:block" /> */}
               </span>
             </motion.h1>
 
@@ -379,88 +382,113 @@ const QuickChip = ({ icon: Icon, label }: { icon: any; label: string }) => (
   </button>
 );
 
+const JobSearchForm = () => {
+  const router = useRouter();
 
-const JobSearchForm = () => (
-  <motion.div
-    initial={{ opacity: 0, y: 16 }}
-    animate={{ opacity: 1, y: 0 }}
-    transition={{ delay: 0.1, type: "spring" }}
-    className="relative z-20 mx-auto w-full max-w-4xl"
-  >
-    {/* Premium Glassmorphism Desktop Search */}
-    <div className="hidden rounded-[2rem] bg-white/40 p-2 shadow-2xl backdrop-blur-2xl border border-white/60 dark:bg-slate-900/60 dark:border-slate-700/50 dark:shadow-blue-900/10 lg:block">
-      <div className="flex flex-row items-center divide-x divide-slate-300/50 dark:divide-slate-700/50 bg-white/70 dark:bg-slate-950/70 rounded-[1.7rem] pr-2">
+  const [query, setQuery] = useState("");
+  const [location, setLocation] = useState("");
 
-        {/* Search Input 1 */}
-        <div className="relative flex flex-[1.5] items-center px-6 py-4">
-          <FaSearch className="mr-3 text-blue-600 dark:text-blue-400" />
-          <div className="flex-1">
+  const handleSearch = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    const params = new URLSearchParams();
+
+    if (query.trim()) params.append("q", query.trim());
+    if (location.trim()) params.append("location", location.trim());
+
+    if (params.toString()) {
+      router.push(`/jobs?${params.toString()}`);
+    }
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1, type: "spring" }}
+      className="relative z-20 mx-auto w-full max-w-4xl"
+    >
+      {/* Desktop */}
+      <form
+        onSubmit={handleSearch}
+        className="hidden rounded-[2rem] bg-white/40 p-2 shadow-2xl backdrop-blur-2xl border border-white/60 lg:block"
+      >
+        <div className="flex flex-row items-center divide-x bg-white/70 rounded-[1.7rem] pr-2">
+
+          {/* Query */}
+          <div className="flex flex-[1.5] items-center px-6 py-4">
+            <FaSearch className="mr-3 text-blue-600" />
             <input
               type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
               placeholder="Job title, keywords, or company..."
-              className="w-full bg-transparent text-[15px] font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-500 focus:outline-none dark:text-white dark:placeholder:text-slate-400"
-              suppressHydrationWarning
+              className="w-full bg-transparent font-bold focus:outline-none"
             />
           </div>
-        </div>
 
-        {/* Search Input 2 */}
-        <div className="relative flex flex-1 items-center px-6 py-4 transition-colors hover:bg-slate-50/50 dark:hover:bg-slate-800/30 rounded-r-none">
-          <FaMapMarkerAlt className="mr-3 text-slate-400 dark:text-slate-500" />
-          <div className="flex-1">
+          {/* Location */}
+          <div className="flex flex-1 items-center px-6 py-4">
+            <FaMapMarkerAlt className="mr-3 text-slate-400" />
             <input
               type="text"
+              value={location}
+              onChange={(e) => setLocation(e.target.value)}
               placeholder="City or zip code"
-              className="w-full bg-transparent text-[15px] font-bold text-slate-900 placeholder:font-medium placeholder:text-slate-500 focus:outline-none dark:text-white dark:placeholder:text-slate-400"
+              className="w-full bg-transparent font-bold focus:outline-none"
             />
+          </div>
+
+          {/* Button */}
+          <button
+            type="submit"
+            className="rounded-[1.3rem] bg-blue-600 px-10 py-4 text-sm font-bold text-white hover:scale-105"
+          >
+            Search
+          </button>
+        </div>
+      </form>
+
+      {/* Mobile */}
+      <div className="flex flex-col gap-3 lg:hidden px-2">
+        <div className="rounded-3xl bg-white p-2 shadow-xl border">
+          <div className="flex flex-col">
+
+            <div className="flex items-center border-b px-5 py-4">
+              <FaSearch className="mr-3 text-blue-500" />
+              <input
+                type="text"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Job title, keywords..."
+                className="w-full bg-transparent font-bold focus:outline-none"
+              />
+            </div>
+
+            <div className="flex items-center px-5 py-4">
+              <FaMapMarkerAlt className="mr-3 text-slate-400" />
+              <input
+                type="text"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                placeholder="Location"
+                className="w-full bg-transparent font-bold focus:outline-none"
+              />
+            </div>
+
           </div>
         </div>
 
         <button
-          type="button"
-          className="rounded-[1.3rem] bg-linear-to-r from-blue-600 to-indigo-600 px-10 py-4 text-sm font-bold text-white transition-all hover:scale-105 hover:shadow-lg hover:shadow-blue-500/30 active:scale-95"
-          suppressHydrationWarning
+          onClick={handleSearch}
+          className="w-full rounded-2xl bg-blue-600 py-4 text-sm font-bold text-white"
         >
-          Search
+          Search Jobs
         </button>
       </div>
-    </div>
-
-    {/* Mobile View */}
-    <div className="flex flex-col gap-3 lg:hidden px-2">
-      <div className="rounded-3xl bg-white/80 backdrop-blur-xl p-2 shadow-xl border border-white/40 dark:bg-slate-900/80 dark:border-slate-800">
-        <div className="flex flex-col">
-          <div className="flex items-center border-b border-slate-200/60 px-5 py-4 dark:border-slate-800">
-            <FaSearch className="mr-3 text-blue-500" />
-            <input
-              type="text"
-              placeholder="Job title, keywords..."
-              className="w-full bg-transparent text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-white"
-              suppressHydrationWarning
-            />
-          </div>
-          <div className="flex items-center px-5 py-4">
-            <FaMapMarkerAlt className="mr-3 text-slate-400" />
-            <input
-              type="text"
-              placeholder="Location"
-              className="w-full bg-transparent text-sm font-bold text-slate-900 placeholder:text-slate-400 focus:outline-none dark:text-white"
-              suppressHydrationWarning
-            />
-          </div>
-        </div>
-      </div>
-
-      <button
-        type="button"
-        className="w-full rounded-2xl bg-linear-to-r from-blue-600 to-indigo-600 py-4 text-sm font-bold text-white shadow-xl shadow-blue-500/20 active:scale-95 transition-transform"
-        suppressHydrationWarning
-      >
-        Search Jobs
-      </button>
-    </div>
-  </motion.div>
-);
+    </motion.div>
+  );
+};
 
 type JobHighlightProps = {
   title: string;

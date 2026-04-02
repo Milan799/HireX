@@ -195,7 +195,7 @@ function DashboardContent() {
           )}
           <span className="relative z-10 flex items-center gap-2"><TrendingUp size={16} /> Overview</span>
         </button>
-        <button
+        {/* <button
           onClick={handleOpenAtsTab}
           className={`relative flex items-center gap-2.5 rounded-xl px-6 py-2.5 text-sm font-bold transition-all duration-300 ${activeTab === "ats" ? "text-slate-900 dark:text-white" : "text-slate-500 hover:text-slate-700 dark:text-slate-500 dark:hover:text-white"
             }`}
@@ -204,7 +204,7 @@ function DashboardContent() {
             <motion.div layoutId="activeTabBadge" className="absolute inset-0 rounded-xl bg-white dark:bg-violet-600 shadow-sm dark:shadow-violet-900/50" />
           )}
           <span className="relative z-10 flex items-center gap-2"><Users size={16} /> Tracker (ATS)</span>
-        </button>
+        </button> */}
       </div>
 
       <AnimatePresence mode="wait">
@@ -314,8 +314,9 @@ function DashboardContent() {
                     <TrendingUp size={24} className="text-amber-600 dark:text-amber-400" />
                   </div>
                   <h4 className="text-sm font-bold text-slate-900 dark:text-white mb-2">HireX Premium Insights</h4>
-                  <p className="text-xs text-slate-500 font-medium max-w-[200px]">Unlock advanced candidate matching and AI analytics to hire 3x faster.</p>
-                  <button className="mt-4 text-xs font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest hover:underline">Upgrade Plan</button>
+                  <p className="text-xs text-slate-500 font-medium max-w-[200px]">Unlock unlimited job posting and 10 interview per day.</p>
+                 <Link href="/employer/settings" ><button className="mt-4 text-xs font-black text-violet-600 dark:text-violet-400 uppercase tracking-widest hover:underline">Upgrade Plan</button>
+                </Link>
                 </div>
               </div>
 

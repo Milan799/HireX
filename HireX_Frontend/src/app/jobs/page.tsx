@@ -41,8 +41,8 @@ export default function JobsPage() {
 
   useEffect(() => {
     const combinedKeyword = keyword || urlKeyword || urlCategory;
-    dispatch(fetchJobs({ keyword: combinedKeyword, location: urlLocation, skip: (page - 1) * limit, limit }));
-  }, [dispatch, keyword, page, urlLocation, urlCategory, urlKeyword]);
+    dispatch(fetchJobs({ keyword: combinedKeyword, location: urlLocation, skip: (page - 1) * limit, limit, sortBy, sortOrder }));
+  }, [dispatch, keyword, page, urlLocation, urlCategory, urlKeyword, sortBy, sortOrder]);
 
   const handleSearch = () => {
     setKeyword(searchInput);
@@ -96,20 +96,6 @@ export default function JobsPage() {
 
   // Frontend Sorting and Filtering logic
   let filteredJobs = [...jobs];
-
-  if (sortBy === "Date") {
-    filteredJobs.sort((a, b) => {
-      const timeA = new Date(a.createdAt).getTime();
-      const timeB = new Date(b.createdAt).getTime();
-      return sortOrder === "Ascending" ? timeA - timeB : timeB - timeA;
-    });
-  } else if (sortBy === "Relevance") {
-     // Usually, Ascending or Descending relevance doesn't make strict mathematical sense, 
-     // but we can enforce general text based sorts or flip the array if they request Ascending relevance.
-     if (sortOrder === "Ascending") {
-         filteredJobs.reverse(); // Simplified
-     }
-  }
 
   // Frontend Filter Enforcement
   if (activeFilters["Work Mode"]?.length > 0) {

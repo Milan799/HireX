@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { PublicNavbar } from "@/components/layout/Navbar";
 import {
-  Mail, Phone, MapPin, Edit2, Plus,
+  Mail, Phone, MapPin, Edit2, Plus, User,
   Briefcase, GraduationCap, Code, FileText,
   CheckCircle2, X, Loader2, UploadCloud, Trash2, DownloadCloud
 } from "lucide-react";
@@ -249,11 +249,11 @@ export default function ProfilePage() {
 
                   <div className="group flex flex-col justify-center rounded-2xl bg-slate-50 p-4 border border-slate-100 dark:bg-white/5 dark:border-white/5 hover:border-blue-200 hover:shadow-lg dark:hover:border-blue-500/30 transition-all">
                     <div className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1 flex items-center gap-2">
-                      <Briefcase size={12} className="text-slate-400 group-hover:text-blue-500 transition-colors" /> Seniority
+                      <User size={12} className="text-slate-400 group-hover:text-blue-500 transition-colors" /> Gender
                     </div>
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-bold text-slate-900 dark:text-white truncate">
-                        {user?.experience?.length ? `${user.experience.length} Role(s) Tracked` : "Entry Level"}
+                        {user?.gender || "Not specified"}
                       </span>
                     </div>
                   </div>
@@ -505,6 +505,24 @@ function Modal({ section, user, onClose, onSave }: { section: string; user: any;
                   onChange={(e) => setFormData({ ...formData, location: { ...(typeof formData.location === 'object' ? formData.location : {}), city: e.target.value } })}
                   placeholder="e.g. Surat, India"
                 />
+              </div>
+              <div className="sm:col-span-2">
+                <label className={labelClasses}>Gender</label>
+                <div className="flex gap-6 mt-2">
+                  {["Male", "Female", "Other"].map((g) => (
+                    <label key={g} className="flex items-center gap-2 cursor-pointer text-sm font-bold text-slate-700 dark:text-slate-300">
+                      <input 
+                        type="radio" 
+                        name="gender" 
+                        value={g} 
+                        checked={formData.gender === g} 
+                        onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                        className="w-4 h-4 accent-blue-600"
+                      />
+                      {g}
+                    </label>
+                  ))}
+                </div>
               </div>
             </div>
           )}

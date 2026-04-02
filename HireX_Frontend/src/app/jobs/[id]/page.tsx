@@ -199,7 +199,8 @@ export default function JobDetailsPage(props: { params: Promise<{ id: string }> 
                 <div>
                    <h3 className="font-bold text-slate-900 dark:text-white">{job.employerId?.companyName || job.company}</h3>
                    <div className="flex items-center gap-3 mt-1 text-sm text-slate-500">
-                      <span className="flex items-center gap-1"><Users size={14} /> 1000-5000 Employees</span>
+                      <span className="flex items-center gap-1"> <Users size={14} />
+  {job.hiredCount || 0} Employees</span>
                       {job.employerId?.companyWebsite && (
                         <a href={job.employerId.companyWebsite} target="_blank" className="flex items-center gap-1 text-blue-600 hover:underline"><Globe size={14} /> Website</a>
                       )}
@@ -207,7 +208,7 @@ export default function JobDetailsPage(props: { params: Promise<{ id: string }> 
                 </div>
               </div>
               <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                We are a technology innovation leader, transforming industries through cutting-edge solutions. Join us to be part of an award-winning culture that values creativity, collaboration, and continuous growth.
+              {job.companyId.description}
               </p>
             </div>
           </div>

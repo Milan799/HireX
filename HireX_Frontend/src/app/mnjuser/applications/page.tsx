@@ -124,14 +124,14 @@ export default function ApplicationsTrackingPage() {
                         <div className="flex justify-between items-start">
                           <div className="flex gap-4 items-center">
                             <div className="w-16 h-16 rounded-2xl border border-slate-100 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 flex items-center justify-center overflow-hidden flex-shrink-0">
-                                <span className="text-2xl font-bold text-slate-400">{app.jobId?.company?.charAt(0) || "C"}</span>
+                                <span className="text-2xl font-bold text-slate-400">{app.jobId?.companyId?.name?.charAt(0) || "C"}</span>
                             </div>
                             <div>
                               <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 transition-colors">
                                 {app.jobId?.title || "Unknown Role"}
                               </h2>
                               <div className="flex items-center gap-3 text-sm font-medium text-slate-500 dark:text-slate-400 mt-1">
-                                <span className="flex items-center gap-1.5"><Building2 size={16} /> {app.jobId?.company || "Unknown Company"}</span>
+                                <span className="flex items-center gap-1.5"><Building2 size={16} /> {app.jobId.companyId.name || app.jobId?.company || "Unknown Company"}</span>
                                 <span className="hidden sm:inline">•</span>
                                 <span className="flex items-center gap-1.5"><MapPin size={16} /> {app.jobId?.location || "Remote"}</span>
                               </div>
