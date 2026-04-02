@@ -38,7 +38,7 @@ export default function SetOAuthPasswordModal() {
     setIsLoading(true);
     try {
       const res = await axios.post(
-        `${process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}"}/auth/oauth/set-password`,
+        `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/auth/oauth/set-password`,
         {
           email: session?.user?.email,
           newPassword: data.password,

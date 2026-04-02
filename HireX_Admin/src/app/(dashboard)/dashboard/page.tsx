@@ -15,7 +15,7 @@ export default function AdminDashboard() {
     const fetchStats = async () => {
       try {
         setLoading(true);
-        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/stats", {
+        const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/stats`, {
           withCredentials: true,
           headers: {
             Authorization: `Bearer ${session?.user?.accessToken || ''}`,

@@ -4,7 +4,7 @@ import axios from "axios";
 import { attachAbortController, clearAbortController } from "./abortManager";
 import { handleLogout } from "./logout";
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}";
+const baseURL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
 
 const axiosClient = axios.create({
   baseURL,

@@ -37,7 +37,7 @@ export const {
         }
 
         try {
-          const res = await fetch(`${process.env.API_URL || `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}'}/auth/login`, {
+          const res = await fetch(`${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -81,7 +81,7 @@ export const {
     async jwt({ token, user, account, trigger, session }) {
       if (account && account.provider !== "credentials") {
         try {
-          const res = await fetch(`${process.env.API_URL || `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}'}/auth/oauth`, {
+          const res = await fetch(`${process.env.API_URL || process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/auth/oauth`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

@@ -14,7 +14,7 @@ export default function AdminEmployersPage() {
   const fetchEmployers = async () => {
     try {
       setLoading(true);
-      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/employers", {
+      const res = await axios.get(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/admin/employers`, {
         headers: { Authorization: `Bearer ${session?.user?.accessToken || ''}` },
         withCredentials: true
       });

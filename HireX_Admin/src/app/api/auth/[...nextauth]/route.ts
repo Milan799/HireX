@@ -16,7 +16,7 @@ export const authOptions: NextAuthOptions = {
         }
 
         try {
-          const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/auth/login", {
+          const res = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api"}/auth/login`, {
             email: credentials.email,
             password: credentials.password,
             role: "admin", // Explicitly specifying admin login to backend
