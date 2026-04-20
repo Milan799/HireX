@@ -57,7 +57,40 @@ const createOrUpdateCompany = async (req, res) => {
     }
 };
 
+// POST /api/company/logo
+const uploadLogo = async (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ message: "No logo file provided." });
+        }
+        
+        // Since server serves /uploads static folder
+        const logoUrl = `${process.env.API_URL || "http://localhost:5000"}/uploads/misc/${req.file.filename}`;
+        
+        const { id } = req.user;
+        let company = await Company.findOne({ recruiterId: id });
+        
+        if (company) {
+            company.logo = logoUrl;
+            await company.save();
+        } else {
+            company = await Company.create({
+                recruiterId: id,
+                name: "Pending Company",
+                description: "...",
+                logo: logoUrl
+            });
+            await User.findByIdAndUpdate(id, { companyId: company._id });
+        }
+        
+        return res.status(200).json({ message: "Logo updated successfully", logo: logoUrl, company });
+    } catch (error) {
+        return res.status(500).json({ message: error.message });
+    }
+};
+
 module.exports = {
     getCompany,
-    createOrUpdateCompany
+    createOrUpdateCompany,
+    uploadLogo
 };

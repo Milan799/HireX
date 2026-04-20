@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
+import axiosClient from "@/lib/axios/axiosClientInstance";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { fetchMyApplications } from "@/lib/store/slices/applicationSlice";
 import { fetchJobs } from "@/lib/store/slices/jobSlice";
@@ -31,6 +32,7 @@ export default function Homepage() {
   const user = userResponse?.user || userResponse;
   const { applications } = useAppSelector((state) => state.application);
   const { jobs: recommendedJobs } = useAppSelector((state) => state.job);
+  const [topCompanies, setTopCompanies] = useState<any[]>([]);
   const [isMounted, setIsMounted] = useState(false);
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -39,6 +41,18 @@ export default function Homepage() {
     setIsMounted(true);
     dispatch(fetchMyApplications());
     dispatch(fetchJobs({ limit: 5 }));
+
+    const fetchTopCompanies = async () => {
+      try {
+        const res = await axiosClient.get("/home");
+        if (res.data) {
+          setTopCompanies(res.data.topCompanies || []);
+        }
+      } catch (err: any) {
+        console.warn("Failed to fetch top companies:", err?.message || "Network Error");
+      }
+    };
+    fetchTopCompanies();
   }, [dispatch]);
 
   const userName = (isMounted && user?.fullName) || "Guest";
@@ -122,32 +136,34 @@ export default function Homepage() {
               <div className="lg:col-span-8 space-y-8">
 
                 {/* Pro Banner */}
-                <motion.div variants={itemVariants} className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6 sm:p-8 shadow-sm border border-orange-200/50 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-yellow-950/20 dark:border-orange-900/50 hover:shadow-orange-500/10 transition-all">
-                  <div className="absolute -right-10 -top-10 text-orange-200 dark:text-orange-900/20 opacity-60 rotate-12 transition-transform duration-700 group-hover:rotate-45 group-hover:scale-110">
-                    <Crown size={180} strokeWidth={1.5} />
-                  </div>
-                  <div className="relative z-10 sm:w-2/3">
-                    <div className="flex items-center gap-2 mb-3">
-                      <span className="inline-flex items-center rounded-md bg-gradient-to-r from-orange-400 to-amber-500 px-2 py-1 text-[10px] font-extrabold text-white shadow-sm ring-1 ring-inset ring-orange-600/20 uppercase tracking-wider">
-                        Pro Access
-                      </span>
+                {user?.subscription?.plan !== 'pro' && (
+                  <motion.div variants={itemVariants} className="group relative overflow-hidden rounded-3xl bg-gradient-to-br from-amber-50 via-orange-50 to-yellow-50 p-6 sm:p-8 shadow-sm border border-orange-200/50 dark:from-amber-950/40 dark:via-orange-950/30 dark:to-yellow-950/20 dark:border-orange-900/50 hover:shadow-orange-500/10 transition-all">
+                    <div className="absolute -right-10 -top-10 text-orange-200 dark:text-orange-900/20 opacity-60 rotate-12 transition-transform duration-700 group-hover:rotate-45 group-hover:scale-110">
+                      <Crown size={180} strokeWidth={1.5} />
                     </div>
-                    <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">
-                      Stand out to recruiters
-                    </h3>
-                    <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-6">
-                      Get 3x more visibility, expert AI resume reviews, and priority application status with HireX Pro.
-                    </p>
-                    <Link
-                      href="/pro_profile"
-                      className="group/btn relative inline-flex overflow-hidden rounded-full bg-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:shadow-xl transition-all dark:bg-white dark:text-slate-900"
-                    >
-                      <span className="relative z-10 flex items-center justify-center gap-2">
-                        Upgrade Now <ChevronRight size={16} className="transition-transform group-hover/btn:translate-x-1" />
-                      </span>
-                    </Link>
-                  </div>
-                </motion.div>
+                    <div className="relative z-10 sm:w-2/3">
+                      <div className="flex items-center gap-2 mb-3">
+                        <span className="inline-flex items-center rounded-md bg-gradient-to-r from-orange-400 to-amber-500 px-2 py-1 text-[10px] font-extrabold text-white shadow-sm ring-1 ring-inset ring-orange-600/20 uppercase tracking-wider">
+                          Pro Access
+                        </span>
+                      </div>
+                      <h3 className="text-2xl font-extrabold text-slate-900 dark:text-white mb-2">
+                        Stand out to recruiters
+                      </h3>
+                      <p className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-6">
+                        Get 3x more visibility, expert AI resume reviews, and priority application status with HireX Pro.
+                      </p>
+                      <Link
+                        href="/mnjuser/subscription"
+                        className="group/btn relative inline-flex overflow-hidden rounded-full bg-slate-900 px-6 py-2.5 text-sm font-bold text-white shadow-lg hover:shadow-xl transition-all dark:bg-white dark:text-slate-900"
+                      >
+                        <span className="relative z-10 flex items-center justify-center gap-2">
+                          Upgrade Now <ChevronRight size={16} className="transition-transform group-hover/btn:translate-x-1" />
+                        </span>
+                      </Link>
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Recent Applications */}
                 <motion.div variants={itemVariants} className="bg-white rounded-[2rem] p-6 sm:p-8 shadow-sm border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
@@ -241,14 +257,25 @@ export default function Homepage() {
                 <motion.div variants={itemVariants} className="bg-white rounded-[2rem] p-6 shadow-sm border border-slate-200 dark:bg-slate-900 dark:border-slate-800">
                   <h2 className="text-lg font-extrabold text-slate-900 dark:text-white mb-6">Top Companies</h2>
                   <div className="grid grid-cols-2 gap-3">
-                    {["Google", "Microsoft", "Amazon", "Netflix"].map((company, idx) => (
-                      <div key={idx} className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all text-center dark:border-slate-800 dark:hover:border-blue-800">
-                        <div className="h-10 w-10 mb-2 rounded bg-slate-50 p-2 border border-slate-100 dark:bg-slate-800 dark:border-slate-700">
-                          <img src={`https://logo.clearbit.com/${company.toLowerCase()}.com`} alt={company} onError={(e: any) => e.target.src = `https://ui-avatars.com/api/?name=${company}&background=random`} className="h-full w-full object-contain" />
+                    {topCompanies.length > 0 ? (
+                      topCompanies.slice(0, 4).map((company: any, idx) => (
+                        <div key={idx} className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all text-center dark:border-slate-800 dark:hover:border-blue-800">
+                          <div className="h-10 w-10 mb-2 rounded bg-slate-50 border border-slate-100 dark:bg-slate-800 dark:border-slate-700 flex items-center justify-center overflow-hidden">
+                            <img src={company.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(company.name)}&background=random`} alt={company.name} className="h-full w-full object-cover" />
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300 truncate w-full px-1">{company.name}</span>
                         </div>
-                        <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{company}</span>
-                      </div>
-                    ))}
+                      ))
+                    ) : (
+                      ["Google", "Microsoft", "Amazon", "Netflix"].map((company, idx) => (
+                        <div key={idx} className="flex flex-col items-center justify-center p-4 rounded-xl border border-slate-100 hover:border-blue-200 hover:shadow-sm transition-all text-center dark:border-slate-800 dark:hover:border-blue-800">
+                          <div className="h-10 w-10 mb-2 rounded bg-slate-50 p-2 border border-slate-100 dark:bg-slate-800 dark:border-slate-700">
+                            <img src={`https://logo.clearbit.com/${company.toLowerCase()}.com`} alt={company} onError={(e: any) => e.target.src = `https://ui-avatars.com/api/?name=${company}&background=random`} className="h-full w-full object-contain" />
+                          </div>
+                          <span className="text-[10px] font-bold text-slate-700 dark:text-slate-300">{company}</span>
+                        </div>
+                      ))
+                    )}
                   </div>
                 </motion.div>
 

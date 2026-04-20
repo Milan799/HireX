@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { Trash2, Search, ExternalLink, Briefcase, MapPin, DollarSign, Calendar } from "lucide-react";
+import { Trash2, Search, ExternalLink, Briefcase, MapPin, DollarSign, Calendar, IndianRupee, TrendingUp } from "lucide-react";
 
 export default function AdminJobsPage() {
   const { data: session } = useSession();
@@ -92,8 +92,10 @@ export default function AdminJobsPage() {
               <tr>
                 <th className="px-8 py-5">Position</th>
                 <th className="px-6 py-5">Company</th>
+                <th className="px-6 py-5">Experience Level</th>
                 <th className="px-6 py-5">Compensation</th>
                 <th className="px-6 py-5">Info</th>
+                <th className="px-6 py-5">Status</th>
                 <th className="px-8 py-5 text-right">Actions</th>
               </tr>
             </thead>
@@ -128,12 +130,18 @@ export default function AdminJobsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5">
-                       <span className="font-semibold text-slate-700 dark:text-slate-300 drop-shadow-sm">{job.company?.name || "Unknown"}</span>
+                       <span className="font-semibold text-slate-700 dark:text-slate-300 drop-shadow-sm">{job.companyId?.name || "Unknown"}</span>
+                    </td>
+                    <td className="px-6 py-5">
+                      <div className="flex items-center gap-2 font-semibold text-slate-700 dark:text-slate-300 drop-shadow-sm">
+                      <TrendingUp size={14} />
+                       <span className="font-semibold text-slate-700 dark:text-slate-300 drop-shadow-sm">{job.experienceLevel || "Unknown"}</span>
+                      </div>
                     </td>
                     <td className="px-6 py-5">
                       <div className="flex items-center text-sm font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-500/10 w-max px-3 py-1.5 rounded-xl border border-emerald-200/50 dark:border-emerald-500/20">
-                         <DollarSign size={14} className="mr-1 opacity-70" />
-                         {job.salary || "Not Specified"}
+                         <IndianRupee size={14} className="mr-1 opacity-70" />
+                         {job.salaryRange || "Not Specified"}
                        </div>
                     </td>
                     <td className="px-6 py-5">
@@ -145,6 +153,18 @@ export default function AdminJobsPage() {
                          {job.jobType}
                       </span>
                     </td>
+                    <td className="px-6 py-5">
+  <div
+    className={`flex items-center text-sm font-medium w-max px-3 py-1.5 rounded-xl border
+      ${
+        job.status === "Active"
+          ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50/50 dark:bg-emerald-500/10 border-emerald-200/50 dark:border-emerald-500/20"
+          : "text-red-600 dark:text-red-400 bg-red-50/50 dark:bg-red-500/10 border-red-200/50 dark:border-red-500/20"
+      }`}
+  >
+    {job.status || "Not Specified"}
+  </div>
+</td>
                     <td className="px-8 py-5 text-right">
                       <div className="flex items-center justify-end space-x-2">
                          <a

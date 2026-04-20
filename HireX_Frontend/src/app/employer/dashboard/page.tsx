@@ -135,10 +135,18 @@ function DashboardContent() {
       {user?.companyId?.kycStatus === "rejected" && (
         <div className="mb-6 flex flex-col sm:flex-row items-center justify-between gap-4 rounded-2xl bg-rose-500/10 border border-rose-500/20 px-6 py-4 text-rose-700 dark:bg-rose-500/10 dark:text-rose-400 dark:border-rose-500/20 shadow-sm">
           <div className="flex items-center gap-3">
-            <AlertCircle size={20} className="shrink-0" />
+            <AlertCircle size={20} className="shrink-0 pt-0.5 self-start" />
             <div>
               <p className="text-sm font-bold">KYC Rejected</p>
               <p className="text-[11px] font-medium opacity-80 mt-0.5">Your submitted files did not pass verification. Please re-upload valid documents.</p>
+              {user?.companyId?.kycRejectionReason && (
+                <div className="mt-2 p-2 rounded-lg bg-rose-50 dark:bg-rose-900/20 border border-rose-100 dark:border-rose-800/30">
+                  <p className="text-xs font-bold uppercase tracking-wider text-rose-800 dark:text-rose-300 mb-0.5">Reason provided by Admin:</p>
+                  <p className="text-[11px] font-medium text-rose-700 dark:text-rose-200">
+                    "{user.companyId.kycRejectionReason}"
+                  </p>
+                </div>
+              )}
             </div>
           </div>
           <Link href="/employer/kyc" className="shrink-0 rounded-[10px] bg-rose-600 px-4 py-2 text-[11px] font-black uppercase tracking-widest text-white hover:bg-rose-500 transition shadow-sm">Resubmit KYC</Link>

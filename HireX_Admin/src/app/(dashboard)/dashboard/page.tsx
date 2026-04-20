@@ -110,9 +110,9 @@ export default function AdminDashboard() {
                 </div>
               </div>
               <p className="text-4xl font-extrabold text-slate-900 dark:text-white mb-2">{stats.users.recruiters}</p>
-              <p className="text-xs font-medium text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-800 w-max px-2.5 py-1 rounded-full border border-slate-200 dark:border-slate-700">
-                {stats.companies.total} Verified Companies
-              </p>
+             <span className="flex items-center text-xs font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 px-2 py-1 rounded-full border border-emerald-200 dark:border-emerald-500/20">
+               <CheckCircle size={10} className="mr-1" />{stats.companies.total} Verified Companies
+              </span>
             </div>
           </div>
 

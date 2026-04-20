@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { PublicNavbar } from "@/components/layout/Navbar";
 import { JobFilter } from "@/components/jobs/JobFilter";
 import { JobCard } from "@/components/jobs/JobCard";
-import { FaSearch, FaChevronDown, FaChevronLeft, FaChevronRight } from "react-icons/fa";
+import { FaSearch, FaChevronDown, FaChevronLeft, FaChevronRight, FaCrown } from "react-icons/fa";
 import { useAppDispatch, useAppSelector } from "@/lib/store/hooks";
 import { fetchJobs } from "@/lib/store/slices/jobSlice";
 import { applyToJob } from "@/lib/store/slices/applicationSlice";
@@ -19,14 +19,14 @@ export default function JobsPage() {
   const { jobs, status, total } = useAppSelector((state) => state.job);
   const { data: userResponse } = useAppSelector((state) => state.user);
   const user = userResponse?.user || userResponse;
-  
+
   const [keyword, setKeyword] = useState("");
   const [searchInput, setSearchInput] = useState("");
   const [sortBy, setSortBy] = useState("Relevance");
   const [sortOrder, setSortOrder] = useState("Descending");
   const [page, setPage] = useState(1);
-  const limit = 50; // Increased to allow functional filtering subset
-  
+  const limit = 5;
+
   // Filter States
   const [activeFilters, setActiveFilters] = useState<Record<string, string[]>>({});
 
@@ -34,6 +34,7 @@ export default function JobsPage() {
   const [selectedJobId, setSelectedJobId] = useState<string | null>(null);
   const [coverLetter, setCoverLetter] = useState("");
   const [isApplying, setIsApplying] = useState(false);
+  const [showLimitPopup, setShowLimitPopup] = useState(false);
 
   const urlLocation = searchParams.get("location") || "";
   const urlCategory = searchParams.get("category") || "";
@@ -55,7 +56,7 @@ export default function JobsPage() {
       router.push("/auth/login");
       return;
     }
-    
+
     if (user.role && user.role !== "candidate") {
       notify("Only candidates can apply for jobs", "error");
       return;
@@ -69,7 +70,7 @@ export default function JobsPage() {
     if (!user.resumeUrl) missingFields.push("Resume Document");
     if (!user.skills || user.skills.length === 0) missingFields.push("Key Skills");
     if (!user.education || user.education.length === 0) missingFields.push("Education History");
-                       
+
     if (missingFields.length > 0) {
       notify(`Incomplete Profile. Missing details: ${missingFields.join(", ")}`, "error");
       router.push("/mnjuser/profile");
@@ -88,7 +89,12 @@ export default function JobsPage() {
       notify("Successfully applied to job!", "success");
       setSelectedJobId(null);
     } catch (err: any) {
-      notify(err.error || err.message || "Failed to apply", "error");
+      if (err.limitReached || err.message === "Monthly limit reached" || err.message?.includes("free limit")) {
+        setSelectedJobId(null);
+        setShowLimitPopup(true);
+      } else {
+        notify(err.error || err.message || "Failed to apply", "error");
+      }
     } finally {
       setIsApplying(false);
     }
@@ -100,10 +106,10 @@ export default function JobsPage() {
   // Frontend Filter Enforcement
   if (activeFilters["Work Mode"]?.length > 0) {
     filteredJobs = filteredJobs.filter(j => {
-       const loc = j.location?.toLowerCase() || "";
-       if (activeFilters["Work Mode"].includes("Remote") && loc.includes("remote")) return true;
-       if (activeFilters["Work Mode"].includes("Work from office") && !loc.includes("remote")) return true;
-       return false;
+      const loc = j.location?.toLowerCase() || "";
+      if (activeFilters["Work Mode"].includes("Remote") && loc.includes("remote")) return true;
+      if (activeFilters["Work Mode"].includes("Work from office") && !loc.includes("remote")) return true;
+      return false;
     });
   }
 
@@ -114,8 +120,19 @@ export default function JobsPage() {
   // Frontend Company Enforcement
   if (activeFilters["Company"]?.length > 0) {
     filteredJobs = filteredJobs.filter(j => {
-       const companyName = j.company || "Unknown Company";
-       return activeFilters["Company"].includes(companyName);
+      const companyName = j.company || "Unknown Company";
+      return activeFilters["Company"].includes(companyName);
+    });
+  }
+
+  // Frontend Industry Enforcement
+  if (activeFilters["Industry"]?.length > 0) {
+    filteredJobs = filteredJobs.filter(j => {
+      let industryName = "Various";
+      if (typeof j.companyId === 'object' && j.companyId?.industry) {
+        industryName = j.companyId.industry;
+      }
+      return activeFilters["Industry"].includes(industryName);
     });
   }
 
@@ -127,16 +144,16 @@ export default function JobsPage() {
         if (!j.salaryRange) return false;
         const numbers = j.salaryRange.match(/\d+/g);
         if (numbers && numbers.length > 0) {
-           const jobMax = Math.max(...numbers.map(Number));
-           return jobMax >= minVal;
+          const jobMax = Math.max(...numbers.map(Number));
+          return jobMax >= minVal;
         }
         return false;
       });
     }
   }
 
-  const totalPages = Math.max(1, Math.ceil(filteredJobs.length / limit));
-  const currentJobs = filteredJobs.slice(0, limit); // Simplified pagination on frontend array
+  const totalPages = Math.max(1, Math.ceil((total || 0) / limit));
+  const currentJobs = filteredJobs;
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
@@ -144,15 +161,15 @@ export default function JobsPage() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 pt-24 pb-12 sm:px-6 lg:px-8">
-        
+
         {/* Search Bar (Mobile Only) */}
         <div className="mb-6 block lg:hidden">
           <div className="flex gap-2 rounded-xl bg-white p-2 shadow-sm dark:bg-slate-900">
             <div className="flex flex-1 items-center gap-2 rounded-lg bg-slate-50 px-3 py-2 dark:bg-slate-800">
               <FaSearch className="text-slate-400" />
-              <input 
-                type="text" 
-                placeholder="Search jobs..." 
+              <input
+                type="text"
+                placeholder="Search jobs..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -178,18 +195,19 @@ export default function JobsPage() {
               <div className="flex flex-wrap items-center gap-2">
                 <span className="text-sm font-semibold text-slate-500">Sort by:</span>
                 <div className="relative">
-                  <select 
+                  <select
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value)}
                     className="appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-4 pr-9 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
                   >
                     <option>Relevance</option>
                     <option>Date</option>
+                    <option>Rating</option>
                   </select>
                   <FaChevronDown className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-[10px] text-slate-400" />
                 </div>
                 <div className="relative">
-                  <select 
+                  <select
                     value={sortOrder}
                     onChange={(e) => setSortOrder(e.target.value)}
                     className="appearance-none rounded-lg border border-slate-200 bg-white py-2 pl-4 pr-9 text-sm font-bold text-slate-700 outline-none focus:border-blue-500 dark:border-slate-800 dark:bg-slate-900 dark:text-slate-300"
@@ -212,13 +230,14 @@ export default function JobsPage() {
                   No jobs found matching your criteria.
                 </div>
               ) : currentJobs.map((job: any) => (
-                <JobCard 
-                  key={job._id} 
+                <JobCard
+                  key={job._id}
                   id={job._id}
                   title={job.title}
                   company={typeof job.employerId === 'object' && job.employerId?.companyName ? job.employerId.companyName : (job.company || "Company")}
-                  rating={4.5} // Dummy UI component expected values
-                  reviews={0}
+                  logo={job.companyId?.logo}
+                  rating={job.companyId?.ratingStats?.average || 0}
+                  reviews={job.companyId?.ratingStats?.count || 0}
                   experience={job.experienceLevel}
                   salary={job.salaryRange || "Not Disclosed"}
                   location={job.location}
@@ -234,29 +253,28 @@ export default function JobsPage() {
             {totalPages > 1 && (
               <div className="mt-12 flex justify-center">
                 <nav className="flex items-center gap-1 rounded-full bg-white p-1.5 shadow-md shadow-slate-200/50 dark:bg-slate-900 dark:shadow-slate-900/50">
-                  <button 
+                  <button
                     disabled={page === 1}
                     onClick={() => setPage(p => p - 1)}
                     className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
                   >
                     <FaChevronLeft className="text-xs" />
                   </button>
-                  
+
                   {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
                     <button
                       key={p}
                       onClick={() => setPage(p)}
-                      className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all ${
-                        page === p
-                          ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:shadow-blue-500/40"
-                          : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
-                      }`}
+                      className={`flex h-10 w-10 items-center justify-center rounded-full text-sm font-bold transition-all ${page === p
+                        ? "bg-blue-600 text-white shadow-lg shadow-blue-500/30 hover:bg-blue-500 hover:shadow-blue-500/40"
+                        : "text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
+                        }`}
                     >
                       {p}
                     </button>
                   ))}
-                  
-                  <button 
+
+                  <button
                     disabled={page === totalPages}
                     onClick={() => setPage(p => p + 1)}
                     className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 transition-all hover:bg-slate-100 hover:text-slate-900 disabled:opacity-50 dark:text-slate-400 dark:hover:bg-slate-800 dark:hover:text-white"
@@ -284,10 +302,10 @@ export default function JobsPage() {
               <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
                 Your profile details and resume will be sent to the employer automatically. Include an optional cover letter to stand out.
               </p>
-              
+
               <div className="mb-6">
                 <label className="mb-2 block text-sm font-semibold">Cover Letter (Optional)</label>
-                <textarea 
+                <textarea
                   rows={4}
                   value={coverLetter}
                   onChange={(e) => setCoverLetter(e.target.value)}
@@ -297,18 +315,54 @@ export default function JobsPage() {
               </div>
 
               <div className="flex justify-end gap-3">
-                <button 
+                <button
                   onClick={() => setSelectedJobId(null)}
                   className="rounded-lg px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
                 >
                   Cancel
                 </button>
-                <button 
+                <button
                   onClick={submitApplication}
                   disabled={isApplying}
                   className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-bold text-white transition-all hover:bg-blue-700 disabled:opacity-50"
                 >
                   {isApplying ? "Applying..." : "Submit Application"}
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Limit Reached Modal */}
+      <AnimatePresence>
+        {showLimitPopup && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/50 p-4 backdrop-blur-sm">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              className="w-full max-w-sm rounded-2xl bg-white p-6 shadow-xl dark:bg-slate-900 text-slate-900 dark:text-slate-100 text-center"
+            >
+              <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-amber-100 text-amber-500">
+                <FaCrown size={24} />
+              </div>
+              <h2 className="text-xl font-bold mb-2">Monthly Limit Reached</h2>
+              <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">
+                You have reached your free plan limit of 10 applications this month. Upgrade to Pro for unlimited applications and premium features.
+              </p>
+              <div className="flex flex-col gap-3">
+                <button
+                  onClick={() => router.push("/mnjuser/subscription")}
+                  className="w-full rounded-lg bg-gradient-to-r from-amber-500 to-yellow-500 px-4 py-2 font-bold text-white shadow-md hover:shadow-lg transition-all"
+                >
+                  Upgrade Plan
+                </button>
+                <button
+                  onClick={() => setShowLimitPopup(false)}
+                  className="w-full rounded-lg px-4 py-2 text-sm font-bold text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800"
+                >
+                  Cancel
                 </button>
               </div>
             </motion.div>

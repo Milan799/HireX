@@ -1,5 +1,9 @@
 const Application = require("../models/Applications.model");
 const Job = require("../models/Jobs.model");
+const Notification = require("../models/Notification.model");
+const { sendMail } = require("../utils/helperFunctions");
+const { getApplicationStatusUpdateEmailTemplate } = require("../utils/emailTemplates");
+const { getIo, getOnlineUsers } = require("../socket");
 
 // GET /api/applications
 // Fetch candidate's applications, or recruiter's ATS applications per job
@@ -17,7 +21,7 @@ const getApplications = async (req, res) => {
             }
 
             const applications = await Application.find({ jobId })
-                .populate("candidateId", "fullName email resumeUrl skills experience education phone location")
+                .populate("candidateId", "fullName email resumeUrl skills experience education phone location subscription")
                 .sort({ createdAt: -1 });
             return res.status(200).json({ applications });
         } else {
@@ -58,6 +62,31 @@ const applyToJob = async (req, res) => {
             return res.status(400).json({ message: "Already applied to this job." });
         }
 
+        const User = require("../models/Users.model");
+        const candidateUser = await User.findById(id);
+
+        // Enforce application limits for Free Candidates
+        const isPro = candidateUser.subscription?.plan === "pro" && candidateUser.subscription?.isActive;
+        
+        if (!isPro) {
+            const currentMonth = new Date().getMonth();
+            const currentYear = new Date().getFullYear();
+            
+            const resetDate = candidateUser.usage?.lastApplicationResetDate ? new Date(candidateUser.usage.lastApplicationResetDate) : new Date(0);
+            
+            if (currentMonth !== resetDate.getMonth() || currentYear !== resetDate.getFullYear()) {
+                candidateUser.usage.monthlyApplications = 0;
+                candidateUser.usage.lastApplicationResetDate = Date.now();
+            }
+
+            const applicationLimit = candidateUser.subscription?.applyJobLimit || 10;
+
+            if (candidateUser.usage.monthlyApplications >= applicationLimit) {
+                await candidateUser.save(); // apply potential resets
+                return res.status(403).json({ limitReached: true, message: "Monthly limit reached" });
+            }
+        }
+
         // Calculate AI Match Score
         const candidate = await require("../models/Users.model").findById(id);
         let matchScore = 0;
@@ -75,6 +104,11 @@ const applyToJob = async (req, res) => {
             status: "Applied",
             matchScore
         });
+
+        if (!isPro) {
+            candidateUser.usage.monthlyApplications += 1;
+            await candidateUser.save();
+        }
 
         return res.status(201).json({ message: "Applied successfully", application });
     } catch (error) {
@@ -124,7 +158,44 @@ const updateApplicationStatus = async (req, res) => {
         application.status = status;
         await application.save();
         
-        await application.populate("candidateId", "fullName email resumeUrl skills experience education phone location");
+        await application.populate("candidateId", "fullName email resumeUrl skills experience education phone location subscription");
+        await application.populate("jobId"); // Ensure jobId populated for company name
+
+        // 1. Create Notification
+        const notificationMessage = `Your application for ${application.jobId.title} has been updated to: ${status}`;
+        const newNotification = await Notification.create({
+            userId: application.candidateId._id,
+            title: "Application Status Updated",
+            message: notificationMessage,
+            type: "application",
+            link: "/mnjuser/applications"
+        });
+
+        // Emit socket event if user is online
+        try {
+            const io = getIo();
+            const onlineUsers = getOnlineUsers();
+            const socketId = onlineUsers.get(application.candidateId._id.toString());
+            if (socketId) {
+                io.to(socketId).emit("newNotification", newNotification);
+            }
+        } catch (socketErr) {
+            console.error("Socket emit newNotification failed:", socketErr);
+        }
+
+        // 2. Send Email
+        const emailHtml = getApplicationStatusUpdateEmailTemplate(
+            application.candidateId.fullName || "Candidate",
+            application.jobId.title,
+            company.name || "the company",
+            status,
+             "candidate"
+        );
+        sendMail({
+            to: application.candidateId.email,
+            subject: `Update on your application for ${application.jobId.title}`,
+            html: emailHtml
+        }).catch(err => console.error("Status Update Mail Error:", err));
 
         return res.status(200).json({ message: "Status updated successfully", application });
     } catch (error) {

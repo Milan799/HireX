@@ -1,6 +1,10 @@
 const mongoose = require("mongoose");
 const Users = require("../models/Users.model");
 const Company = require("../models/Company.model");
+const Notification = require("../models/Notification.model");
+const { sendMail } = require("../utils/helperFunctions");
+const { getAdminKycUpdateEmailTemplate } = require("../utils/emailTemplates");
+const { getIo, getOnlineUsers } = require("../socket");
 
 // 1. Recruiter Submits KYC Document
 exports.submitKyc = async (req, res) => {
@@ -108,8 +112,50 @@ exports.evaluateKyc = async (req, res) => {
         await company.save();
 
 
-
         res.status(200).json({ success: true, message: `KYC automatically marked as ${status}`, data: company });
+
+        // Retrieve recruiter user to send email and notification
+        try {
+            const recruiter = await Users.findById(company.recruiterId);
+            if (recruiter) {
+                // 1. Create Notification
+                const newNotification = await Notification.create({
+                    userId: recruiter._id,
+                    title: "KYC Verification Update",
+                    message: status === "verified" ? "Your KYC verification has been approved." : "Your KYC verification was rejected.",
+                    type: "kyc",
+                    link: status === "verified" ? "/employer/dashboard" : "/employer/kyc"
+                });
+
+                // Emit socket event if user is online
+                try {
+                    const io = getIo();
+                    const onlineUsers = getOnlineUsers();
+                    const socketId = onlineUsers.get(recruiter._id.toString());
+                    if (socketId) {
+                        io.to(socketId).emit("newNotification", newNotification);
+                    }
+                } catch (socketErr) {
+                    console.error("Socket emit newNotification failed (kyc):", socketErr);
+                }
+
+                // 2. Send Email
+                const emailHtml = getAdminKycUpdateEmailTemplate(
+                    recruiter.fullName || "Recruiter",
+                    status,
+                    company.kycRejectionReason,
+                    "recruiter"
+                );
+                sendMail({
+                    to: recruiter.email,
+                    subject: status === "verified" ? "KYC Verification Approved" : "Action Required: KYC Verification Rejected",
+                    html: emailHtml
+                }).catch(err => console.error("KYC Evaluation Mail Error:", err));
+            }
+        } catch (postUpdateErr) {
+            console.error("Error creating KYC notification/email:", postUpdateErr);
+        }
+
     } catch (error) {
         res.status(500).json({ success: false, message: "Error handling KYC evaluation" });
     }

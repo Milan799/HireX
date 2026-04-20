@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { Menu, Bell, ChevronDown, Settings, User, LogOut, Plus, CheckCircle2 } from "lucide-react";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { clearUser } from "@/lib/store/slices/userSlice";
+import NotificationDropdown from "@/components/common/NotificationDropdown";
 
 interface Props {
   onMenuClick: () => void;
@@ -70,10 +71,7 @@ export function EmployerNavbar({ onMenuClick }: Props) {
         </Link>
 
         {/* Notifications */}
-        <button className="relative rounded-full p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-700 dark:text-slate-400 dark:hover:bg-white/10 dark:hover:text-white transition-colors">
-          <Bell size={18} />
-          <span className="absolute right-2 top-2 h-2 w-2 rounded-full bg-violet-600 dark:bg-violet-500 ring-2 ring-white dark:ring-[#0f0f13]" />
-        </button>
+        <NotificationDropdown />
 
         {/* Profile Dropdown */}
         <div className="relative">

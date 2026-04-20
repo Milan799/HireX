@@ -50,8 +50,8 @@ axiosClient.interceptors.response.use(
 
     const status = error.response?.status;
     const requestUrl = error.config?.url ?? "";
-
-    if ((status === 401 || status === 403) && !isPublicAuthRequest(requestUrl)) {
+    const isLimitError = error.response?.data?.limitReached === true || error.response?.data?.message?.toLowerCase().includes('limit');
+    if ((status === 401 || status === 403) && !isPublicAuthRequest(requestUrl) && !isLimitError) {
       handleLogout();
     }
 

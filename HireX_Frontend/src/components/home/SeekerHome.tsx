@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import axiosClient from "@/lib/axios/axiosClientInstance";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { PublicNavbar } from "@/components/layout/Navbar";
@@ -54,18 +55,14 @@ export default function Home() {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const res = await fetch(`${apiUrl}/home`);
-        
-        if (res.ok) {
-          const json = await res.json();
-          setData(json);
+        const res = await axiosClient.get("/home");
+        if (res.data) {
+          setData(res.data);
         }
-      } catch (err) {
-        console.error("Failed to fetch home data", err);
+      } catch (err: any) {
+        console.warn("Failed to fetch home data:", err?.message || "Network Error");
       } finally {
         setLoading(false);
-        
       }
     };
     fetchHomeData();
@@ -250,7 +247,7 @@ export default function Home() {
               ))
             ) : data?.featuredJobs?.length > 0 ? (
               data.featuredJobs.map((job: any) => (
-                <JobHighlight key={job._id} title={job.title} company={job.employerId?.companyName || job.company} location={job.location} type={job.jobType} logo={job.employerId?.logo} />
+                <JobHighlight key={job._id} title={job.title} company={job.employerId?.companyName || job.company} location={job.location} type={job.jobType} logo={job.companyId?.logo} />
               ))
             ) : (
               <>

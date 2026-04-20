@@ -1,16 +1,17 @@
 const { Server } = require("socket.io");
 const Message = require("./models/Messages.model");
 
+let io;
+// Map to keep track of connected users: { userId: socketId }
+const onlineUsers = new Map();
+
 const initSocket = (server) => {
-    const io = new Server(server, {
+    io = new Server(server, {
         cors: {
             origin: ["http://localhost:3000", "http://127.0.0.1:3001"],
             methods: ["GET", "POST"]
         }
     });
-
-    // Map to keep track of connected users: { userId: socketId }
-    const onlineUsers = new Map();
 
     io.on("connection", (socket) => {
         console.log(`🔌 Client connected: ${socket.id}`);
@@ -63,4 +64,15 @@ const initSocket = (server) => {
     return io;
 };
 
-module.exports = initSocket;
+const getIo = () => {
+    if (!io) {
+        throw new Error("Socket.io is not initialized!");
+    }
+    return io;
+};
+
+const getOnlineUsers = () => {
+    return onlineUsers;
+};
+
+module.exports = { initSocket, getIo, getOnlineUsers };

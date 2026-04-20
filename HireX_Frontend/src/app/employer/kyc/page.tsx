@@ -157,7 +157,7 @@ export default function KycOnboardingPage() {
                                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Recruiter Full Name *</label>
                                 <div className="relative">
                                     <div className="absolute top-3 left-3 pointer-events-none"><Building2 size={16} className="text-slate-400" /></div>
-                                    <input required name="fullName" value={formData.fullName} onChange={handleInputChange} type="text" className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl py-2.5 pl-10 pr-3 text-sm font-bold text-slate-900 outline-none focus:border-violet-500 focus:bg-white dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:border-violet-500 transition-all" placeholder="John Doe" />
+                                    <input required name="fullName" value={formData.fullName} onChange={handleInputChange} type="text" className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl py-2.5 pl-10 pr-3 text-sm font-bold text-slate-900 outline-none focus:border-violet-500 focus:bg-white dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:border-violet-500 transition-all" placeholder="John Doe" disabled/>
                                 </div>
                             </div>
                         </div>
@@ -167,7 +167,7 @@ export default function KycOnboardingPage() {
                                 <label className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">Phone Number *</label>
                                 <div className="relative">
                                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none"><Phone size={16} className="text-slate-400" /></div>
-                                    <input required name="phone" value={formData.phone} onChange={handleInputChange} type="tel" className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl py-2.5 pl-10 pr-3 text-sm font-bold text-slate-900 outline-none focus:border-violet-500 focus:bg-white dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:border-violet-500 transition-all" placeholder="+1 234 567 890" />
+                                    <input required name="phone" value={formData.phone} onChange={handleInputChange} type="tel" className="w-full bg-slate-50 border-2 border-slate-200 rounded-xl py-2.5 pl-10 pr-3 text-sm font-bold text-slate-900 outline-none focus:border-violet-500 focus:bg-white dark:bg-white/5 dark:border-white/10 dark:text-white dark:focus:border-violet-500 transition-all" placeholder="+91 12345 67890" />
                                 </div>
                             </div>
 

@@ -17,7 +17,9 @@ const getPlatformStats = async (req, res) => {
         const totalRecruiters = await User.countDocuments({ role: "recruiter" });
         const totalAdmins = await User.countDocuments({ role: "admin" });
 
-        const totalCompanies = await Company.countDocuments();
+       const totalCompanies = await Company.countDocuments({
+    kycStatus: "verified"
+});
         
         const totalJobs = await Job.countDocuments();
         const activeJobs = await Job.countDocuments({ status: "Active" });
@@ -85,8 +87,15 @@ const deleteUser = async (req, res) => {
 // GET /api/admin/employers
 const getAllEmployers = async (req, res) => {
     try {
-        const employers = await User.find({ role: "recruiter" }).select("-password").populate("companyId");
-        res.status(200).json({ success: true, count: employers.length, data: employers });
+        const employers = await User.find({ role: "recruiter" })
+            .select("-password")
+            .populate("companyId"); // fetch company data
+
+        res.status(200).json({
+            success: true,
+            count: employers.length,
+            data: employers
+        });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }

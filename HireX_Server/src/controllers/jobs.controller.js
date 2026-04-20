@@ -34,12 +34,14 @@ const getJobs = async (req, res) => {
         } else if (sortBy === "Relevance") {
             // Note: MongoDB text search is needed for true relevance, but as a fallback
             // we sort by title alphabetically for relevance approximation if keyword is present
-            // If no keyword, keep it by date.
-            if (keyword) {
-                sortConfig = { title: sortOrder === "Ascending" ? 1 : -1 };
-            } else {
-                sortConfig = { createdAt: sortOrder === "Ascending" ? 1 : -1 };
-            }
+             // If no keyword, keep it by date.
+             if (keyword) {
+                 sortConfig = { title: sortOrder === "Ascending" ? 1 : -1 };
+             } else {
+                 sortConfig = { createdAt: sortOrder === "Ascending" ? 1 : -1 };
+             }
+        } else if (sortBy === "Rating") {
+            sortConfig = { companyRating: sortOrder === "Ascending" ? 1 : -1, createdAt: -1 };
         }
 
         const jobs = await Job.find(query)
@@ -108,6 +110,7 @@ const createJob = async (req, res) => {
             employerId: id,
             companyId: user.companyId,
             company: req.body.company || company?.name || "",
+            companyRating: company?.ratingStats?.average || 0,
         });
 
         return res.status(201).json({ message: "Job posted successfully", job: newJob });

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram } from "react-icons/fa";
+import { FaFacebook, FaTwitter, FaLinkedin, FaInstagram, FaCrown } from "react-icons/fa";
 import { useAppSelector } from "@/lib/store/hooks";
 
 export function Footer() {
@@ -7,85 +7,98 @@ export function Footer() {
 
   const user = userResponse?.user || userResponse;
   const isRecruiter = user?.role === "recruiter";
+  const isPro = !isRecruiter && user?.subscription?.plan === "pro";
+
   return (
-    <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
-      <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          
-          {/* Brand Column */}
-          <div className="space-y-4">
-            <Link href="/" className="flex items-center gap-2">
-               <span className="bg-linear-to-r from-sky-500 via-blue-500 to-cyan-400 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
-                Hire<span className="text-slate-900 dark:text-slate-50">X</span>
-              </span>
-            </Link>
-            <p className="text-sm text-slate-600 dark:text-slate-400">
-              Connecting talent with opportunity. The smartest way to find your next dream job or perfect candidate.
-            </p>
-            <div className="flex gap-4">
-              <SocialIcon icon={<FaLinkedin />} href="#" />
-              <SocialIcon icon={<FaTwitter />} href="#" />
-              <SocialIcon icon={<FaFacebook />} href="#" />
-              <SocialIcon icon={<FaInstagram />} href="#" />
+      <footer className="border-t border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-950">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
+
+            {/* Brand Column */}
+            <div className="space-y-4">
+              <Link href="/" className="flex items-center gap-2">
+                {isPro ? (
+                  <>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-yellow-600 shadow-md shadow-amber-500/20">
+                      <FaCrown className="text-white text-sm" />
+                    </div>
+                    <span className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">
+                      HireX <span className="text-amber-500">Pro</span>
+                    </span>
+                  </>
+                ) : (
+                  <span className="bg-linear-to-r from-sky-500 via-blue-500 to-cyan-400 bg-clip-text text-2xl font-bold tracking-tight text-transparent">
+                    Hire<span className="text-slate-900 dark:text-slate-50">X</span>
+                  </span>
+                )}
+              </Link>
+              <p className="text-sm text-slate-600 dark:text-slate-400">
+                Connecting talent with opportunity. The smartest way to find your next dream job or perfect candidate.
+              </p>
+              <div className="flex gap-4">
+                <SocialIcon icon={<FaLinkedin />} href="#" />
+                <SocialIcon icon={<FaTwitter />} href="#" />
+                <SocialIcon icon={<FaFacebook />} href="#" />
+                <SocialIcon icon={<FaInstagram />} href="#" />
+              </div>
+            </div>
+
+            {/* Links Column 1 */}
+            <div>
+              <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                Company
+              </h3>
+              <ul className="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
+                <li><FooterLink href="/about">About Us</FooterLink></li>
+                <li><FooterLink href="/careers">Careers</FooterLink></li>
+                <li><FooterLink href="/contact">Contact Us</FooterLink></li>
+                <li><FooterLink href="/blog">HireX Blog</FooterLink></li>
+              </ul>
+            </div>
+
+            {/* Links Column 2 */}
+            <div>
+              <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                For Candidates
+              </h3>
+              <ul className="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
+                <li><FooterLink href="/jobs">Browse Jobs</FooterLink></li>
+                <li><FooterLink href="/companies">Browse Companies</FooterLink></li>
+                {/* <li><FooterLink href="/services">Resume Services</FooterLink></li> */}
+                {/* <li><FooterLink href="/auth/login">Candidate Login</FooterLink></li> */}
+              </ul>
+            </div>
+
+            {/* Links Column 3 */}
+            {isRecruiter && (
+              <div>
+                <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
+                  For Recruiters
+                </h3>
+                <ul className="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
+                  <li><FooterLink href="/employer/jobs/new">Post a Job</FooterLink></li>
+                  <li><FooterLink href="/employer/resdex">Search Resumes</FooterLink></li>
+                  <li><FooterLink href="/employer/dashboard">Hiring Solutions</FooterLink></li>
+                  <li><FooterLink href="/auth/login">Employer Login</FooterLink></li>
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="mt-12 border-t border-slate-200 pt-8 dark:border-slate-800">
+            <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
+              <p className="text-xs text-slate-500 dark:text-slate-500">
+                &copy; {new Date().getFullYear()} HireX Inc. All rights reserved.
+              </p>
+              <div className="flex gap-6 text-xs text-slate-500 dark:text-slate-500">
+                <Link href="/privacy" className="hover:text-slate-900 dark:hover:text-slate-300">Privacy Policy</Link>
+                <Link href="/terms" className="hover:text-slate-900 dark:hover:text-slate-300">Terms of Service</Link>
+                <Link href="/fraud-alert" className="hover:text-slate-900 dark:hover:text-slate-300">Fraud Alert</Link>
+              </div>
             </div>
           </div>
-
-          {/* Links Column 1 */}
-          <div>
-            <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-              Company
-            </h3>
-            <ul className="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
-              <li><FooterLink href="/about">About Us</FooterLink></li>
-              <li><FooterLink href="/careers">Careers</FooterLink></li>
-              <li><FooterLink href="/contact">Contact Us</FooterLink></li>
-              <li><FooterLink href="/blog">HireX Blog</FooterLink></li>
-            </ul>
-          </div>
-
-          {/* Links Column 2 */}
-          <div>
-            <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-              For Candidates
-            </h3>
-            <ul className="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
-              <li><FooterLink href="/jobs">Browse Jobs</FooterLink></li>
-              <li><FooterLink href="/companies">Browse Companies</FooterLink></li>
-              {/* <li><FooterLink href="/services">Resume Services</FooterLink></li> */}
-              {/* <li><FooterLink href="/auth/login">Candidate Login</FooterLink></li> */}
-            </ul>
-          </div>
-
-          {/* Links Column 3 */}
-          {isRecruiter && (
-  <div>
-    <h3 className="mb-4 text-sm font-bold uppercase tracking-wider text-slate-900 dark:text-slate-100">
-      For Recruiters
-    </h3>
-    <ul className="space-y-2.5 text-sm text-slate-600 dark:text-slate-400">
-      <li><FooterLink href="/employer/jobs/new">Post a Job</FooterLink></li>
-      <li><FooterLink href="/employer/resdex">Search Resumes</FooterLink></li>
-      <li><FooterLink href="/employer/dashboard">Hiring Solutions</FooterLink></li>
-      <li><FooterLink href="/auth/login">Employer Login</FooterLink></li>
-    </ul>
-  </div>
-)}
         </div>
-
-        <div className="mt-12 border-t border-slate-200 pt-8 dark:border-slate-800">
-          <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
-            <p className="text-xs text-slate-500 dark:text-slate-500">
-              &copy; {new Date().getFullYear()} HireX Inc. All rights reserved.
-            </p>
-            <div className="flex gap-6 text-xs text-slate-500 dark:text-slate-500">
-              <Link href="/privacy" className="hover:text-slate-900 dark:hover:text-slate-300">Privacy Policy</Link>
-              <Link href="/terms" className="hover:text-slate-900 dark:hover:text-slate-300">Terms of Service</Link>
-              <Link href="/fraud-alert" className="hover:text-slate-900 dark:hover:text-slate-300">Fraud Alert</Link>
-            </div>
-          </div>
-        </div>
-      </div>
-    </footer>
+      </footer>
   );
 }
 

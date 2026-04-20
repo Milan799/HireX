@@ -199,6 +199,19 @@ export function JobFilter({ jobs = [], onChange }: JobFilterProps) {
     .map(([label, count]) => ({ label, count }))
     .sort((a,b) => b.count - a.count); // Highest count first
 
+  // Compute dynamic industries
+  const industryMap = new Map<string, number>();
+  jobs.forEach(j => {
+    let indName = 'Various';
+    if (typeof j.companyId === 'object' && j.companyId?.industry) {
+      indName = j.companyId.industry;
+    }
+    industryMap.set(indName, (industryMap.get(indName) || 0) + 1);
+  });
+  const industryOptions = Array.from(industryMap.entries())
+    .map(([label, count]) => ({ label, count }))
+    .sort((a,b) => b.count - a.count); // Highest count first
+
   return (
     <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
       <div className="flex items-center gap-2 border-b border-slate-200 pb-4 dark:border-slate-800">
@@ -252,6 +265,13 @@ export function JobFilter({ jobs = [], onChange }: JobFilterProps) {
         title="Company"
         options={companyOptions}
         onOptionToggle={(label, checked) => handleToggle("Company", label, checked)}
+        isOpen={false}
+      />
+
+      <SearchableFilterSection
+        title="Industry"
+        options={industryOptions}
+        onOptionToggle={(label, checked) => handleToggle("Industry", label, checked)}
         isOpen={false}
       />
     </div>

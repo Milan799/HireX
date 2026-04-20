@@ -48,6 +48,11 @@ const companySchema = new mongoose.Schema(
     kycRejectionReason: {
       type: String,
     },
+    // Dynamically updated by reviews
+    ratingStats: {
+      average: { type: Number, default: 0 },
+      count: { type: Number, default: 0 }
+    }
   },
   { timestamps: true }
 );

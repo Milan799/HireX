@@ -35,7 +35,7 @@ export default function RootLayout({
             <AuthListener>
               <ClientLoader>
                 {children}
-                <FooterWrapper appType={process.env.APP_TYPE} />
+                <FooterWrapper />
                 <ToastContainer />
                 <SetOAuthPasswordModal />
               </ClientLoader>

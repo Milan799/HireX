@@ -44,8 +44,8 @@ export async function middleware(req: any) {
                 return NextResponse.redirect(url);
             }
 
-            // Prevent recruiters from hitting candidate domains
-            if (isCandidateRoute) {
+            // Prevent recruiters from hitting candidate domains and root employer path
+            if (isCandidateRoute || pathname === "/employer") {
                 const url = req.nextUrl.clone();
                 url.pathname = !hasCompany ? "/employer/kyc" : "/employer/dashboard";
                 return NextResponse.redirect(url);

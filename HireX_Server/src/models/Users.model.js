@@ -81,7 +81,6 @@ const userSchema = new mongoose.Schema(
       },
     ],
 
-    preferredRoles: [String],
 
     expectedSalaryEUR: {
       min: Number,
@@ -125,16 +124,6 @@ const userSchema = new mongoose.Schema(
     bio: String,
     website: String,
 
-    kycStatus: {
-      type: String,
-      enum: ["pending", "verified", "rejected"],
-      default: "pending",
-    },
-    kycCompleted: {
-      type: Boolean,
-      default: false,
-    },
-
 
     // Notification Preferences (stored as a map)
     notificationPreferences: {
@@ -147,11 +136,6 @@ const userSchema = new mongoose.Schema(
     profileCompletion: {
       type: Number,
       default: 0,
-    },
-
-    isVerified: {
-      type: Boolean,
-      default: false,
     },
 
     resetPasswordOtp: String,
@@ -178,6 +162,10 @@ const userSchema = new mongoose.Schema(
         type: Number,
         default: 3,
       },
+      applyJobLimit: {
+        type: Number,
+        default: 10,
+      },
       isActive: {
         type: Boolean,
         default: true,
@@ -189,6 +177,14 @@ const userSchema = new mongoose.Schema(
         default: 0,
       },
       lastResetDate: {
+        type: Date,
+        default: Date.now,
+      },
+      monthlyApplications: {
+        type: Number,
+        default: 0,
+      },
+      lastApplicationResetDate: {
         type: Date,
         default: Date.now,
       },

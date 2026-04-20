@@ -10,7 +10,7 @@ const loginUser = async (req, res) => {
         const { email, password, role } = req.body;
 
         // Hardcoded Admin Credentials Check
-        if (email === "admin@hirex.com" && password === "admin123@") {
+        if (email === "admin@hirex.com" && password === "admin@123") {
             const adminUser = {
                 _id: "000000000000000000000000", // valid hex string format for ObjectId
                 email: "admin@hirex.com",
@@ -77,11 +77,20 @@ const registerUser = async (req, res) => {
             return res.status(400).json({ message: "Account exists. Log in instead." });
         }
 
+        const userRole = role || "candidate";
+        const subscription = {
+            plan: "free",
+            isActive: true,
+            interviewsPerDayLimit: userRole === "recruiter" ? 3 : 0,
+            applyJobLimit: userRole === "candidate" ? 10 : 0
+        };
+
         const newUser = await userModel.create({
             fullName,
             email,
             password,
-            role: role || "candidate"
+            role: userRole,
+            subscription
         });
 
         // Generate JWT token
@@ -207,14 +216,22 @@ const oauthLogin = async (req, res) => {
             }
         } else {
             // New user via OAuth
+            const userRole = "candidate"; // default
+            const subscription = {
+                plan: "free",
+                isActive: true,
+                interviewsPerDayLimit: 0,
+                applyJobLimit: 10
+            };
             user = await userModel.create({
                 fullName,
                 email,
                 provider,
                 providerId,
                 profilePicture: profilePicture || "",
-                role: "candidate", // default
-                isVerified: true
+                role: userRole,
+                isVerified: true,
+                subscription
             });
 
             const accessToken = user.generateAccessToken(user);

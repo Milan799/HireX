@@ -41,6 +41,8 @@ const chatRouter = require("./routes/chat.routes");
 const adminRouter = require("./routes/admin.routes");
 const kycRouter = require("./routes/kyc.routes");
 const paymentRouter = require("./routes/payment.routes");
+const notificationsRouter = require("./routes/notifications.routes");
+const reviewsRouter = require("./routes/reviews.routes");
 
 app.use("/api/auth", authRouter);
 app.use("/api/jobs", jobsRouter);
@@ -55,5 +57,7 @@ app.use("/api/chat", chatRouter);
 app.use("/api/admin", adminRouter);
 app.use("/api/kyc", kycRouter);
 app.use("/api/payment", paymentRouter);
+app.use("/api/notifications", notificationsRouter);
+app.use("/api/reviews", reviewsRouter);
 
 module.exports = app;

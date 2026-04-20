@@ -31,7 +31,7 @@ export default function AdminSidebar() {
             HireX <span className="text-indigo-600 dark:text-indigo-400 font-medium">Admin</span>
           </span>
         </Link>
-        <ThemeToggle />
+        {/* <ThemeToggle /> */}
       </div>
 
       {/* Navigation Space */}

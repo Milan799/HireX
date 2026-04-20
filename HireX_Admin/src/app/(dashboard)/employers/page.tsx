@@ -93,7 +93,11 @@ export default function AdminEmployersPage() {
               <tr>
                 <th className="px-8 py-5">Recruiter</th>
                 <th className="px-6 py-5">Company Affiliation</th>
-                <th className="px-6 py-5">Vetting Status</th>
+                <th className="px-6 py-5">KYC Status</th>
+                <th className="px-6 py-5">Industry</th>
+                <th className="px-6 py-5">Phone</th>
+                <th className="px-6 py-5">Description</th>
+                <th className="px-6 py-5">Website</th>
                 <th className="px-6 py-5">Onboarded</th>
                 <th className="px-8 py-5 text-right">Actions</th>
               </tr>
@@ -137,13 +141,57 @@ export default function AdminEmployersPage() {
                       )}
                     </td>
                     <td className="px-6 py-5">
-                      {emp.isVerified ? (
-                        <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 backdrop-blur-sm shadow-sm">
-                          <ShieldCheck size={14} className="mr-1.5" /> Approved
-                        </span>
+  {emp.companyId?.kycStatus === "verified" ? (
+    <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-200/60 dark:border-emerald-500/20 backdrop-blur-sm shadow-sm">
+      <ShieldCheck size={14} className="mr-1.5" /> Approved
+    </span>
+  ) : (
+    <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700 backdrop-blur-sm shadow-sm">
+      Unverified
+    </span>
+  )}
+</td>
+<td className="px-6 py-5">
+                      {emp.companyId ? (
+                        <div className="flex flex-col">
+                           <span className="font-semibold text-sky-600 dark:text-sky-400 drop-shadow-sm">{emp.companyId.industry}</span>
+                        </div>
                       ) : (
-                        <span className="inline-flex items-center px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200/60 dark:border-slate-700 backdrop-blur-sm shadow-sm">
-                          Unverified
+                        <span className="px-3 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-xs rounded-xl border border-amber-200/50 dark:border-amber-500/20 inline-flex items-center">
+                           <ShieldAlert size={12} className="mr-1" /> Profile Pending
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-5">
+                      {emp.companyId ? (
+                        <div className="flex flex-col">
+                           <span className="font-semibold text-sky-600 dark:text-sky-400 drop-shadow-sm">{emp.companyId.phone}</span>
+                        </div>
+                      ) : (
+                        <span className="px-3 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-xs rounded-xl border border-amber-200/50 dark:border-amber-500/20 inline-flex items-center">
+                           <ShieldAlert size={12} className="mr-1" /> Profile Pending
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-5">
+                      {emp.companyId ? (
+                        <div className="flex flex-col">
+                           <span className="font-semibold text-sky-600 dark:text-sky-400 drop-shadow-sm">{emp.companyId.description}</span>
+                        </div>
+                      ) : (
+                        <span className="px-3 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-xs rounded-xl border border-amber-200/50 dark:border-amber-500/20 inline-flex items-center">
+                           <ShieldAlert size={12} className="mr-1" /> Profile Pending
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-5">
+                      {emp.companyId ? (
+                        <div className="flex flex-col">
+                           <span className="font-semibold text-sky-600 dark:text-sky-400 drop-shadow-sm">{emp.companyId.website}</span>
+                        </div>
+                      ) : (
+                        <span className="px-3 py-1 bg-amber-50 dark:bg-amber-500/10 text-amber-600 dark:text-amber-400 font-medium text-xs rounded-xl border border-amber-200/50 dark:border-amber-500/20 inline-flex items-center">
+                           <ShieldAlert size={12} className="mr-1" /> Profile Pending
                         </span>
                       )}
                     </td>

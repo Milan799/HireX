@@ -24,10 +24,10 @@ const getHomeData = async (req, res) => {
                 .limit(6)
                 .populate("companyId", "name website logo"),
 
-            // Get top 6 companies
-            Company.find({})
-                .sort({ createdAt: -1 })
-                .limit(5)
+            // Get top 8 companies based on reviews and ratings
+            Company.find()
+                .sort({ "ratingStats.average": -1, "ratingStats.count": -1, createdAt: -1 })
+                .limit(8)
                 .select("name website logo location")
         ]);
 

@@ -262,7 +262,15 @@ function TrackerContent() {
             ) : (
               <div className="flex flex-1 gap-6 overflow-x-auto pb-6 custom-scrollbar px-2">
                 {STATUSES.map((status) => {
-                  const colApps = applications.filter((a: any) => a.status === status);
+                  const colApps = applications
+                    .filter((a: any) => a.status === status)
+                    .sort((a: any, b: any) => {
+                      const aIsPro = a.candidateId?.subscription?.plan === 'pro' && a.candidateId?.subscription?.isActive;
+                      const bIsPro = b.candidateId?.subscription?.plan === 'pro' && b.candidateId?.subscription?.isActive;
+                      if (aIsPro && !bIsPro) return -1;
+                      if (!aIsPro && bIsPro) return 1;
+                      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+                    });
 
                   const colDesign: Record<string, string> = {
                     "Applied": "border-blue-500 text-blue-700 dark:text-blue-400 bg-gradient-to-b from-blue-50 to-transparent dark:from-blue-500/5 dark:to-transparent",
@@ -298,7 +306,12 @@ function TrackerContent() {
                                   <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(app.candidateId?.fullName || app.candidateId?.email || "Candidate")}&background=random&color=fff&size=100`} alt="" className="h-full w-full object-cover" />
                                 </div>
                                 <div className="min-w-0 flex-1 pt-0.5">
-                                  <p className="font-bold text-sm text-slate-900 dark:text-white truncate transition-colors duration-300">{app.candidateId?.fullName || "Anonymous"}</p>
+                                  <div className="flex items-center gap-2">
+                                    <p className="font-bold text-sm text-slate-900 dark:text-white truncate transition-colors duration-300">{app.candidateId?.fullName || "Anonymous"}</p>
+                                    {(app.candidateId?.subscription?.plan === 'pro' && app.candidateId?.subscription?.isActive) && (
+                                      <span className="shrink-0 bg-gradient-to-r from-amber-200 to-amber-400 text-amber-900 border border-amber-300 dark:border-amber-500/50 text-[9px] font-black uppercase tracking-widest px-1.5 py-0.5 rounded shadow-sm">Pro</span>
+                                    )}
+                                  </div>
                                   <p className="text-[10px] text-slate-500 font-medium truncate mt-0.5 transition-colors duration-300">{app.candidateId?.email || "No email"}</p>
 
                                   <div className="mt-2.5 flex flex-wrap gap-2">

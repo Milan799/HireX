@@ -167,8 +167,96 @@ const getPasswordResetEmailTemplate = (otp, role = "candidate") => {
     return getBaseTemplate("Action Required: HireX Password Reset Code", content, role);
 };
 
+const getAdminKycUpdateEmailTemplate = (fullName, status, rejectReason = "", role = "recruiter") => {
+    const themeColor = getThemeColor(role);
+    const isApproved = status === "verified";
+    
+    const subject = isApproved ? "KYC Verification Approved" : "Action Required: KYC Verification Rejected";
+    
+    const content = `
+        <h2 style="margin: 0 0 20px 0; color: #0f172a; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">${subject}</h2>
+        <p style="margin: 0 0 24px 0;">Dear ${fullName},</p>
+        
+        ${isApproved ? `
+            <p style="margin: 0 0 32px 0;">We are pleased to inform you that your company's KYC verification has been <strong>successfully approved</strong>. You now have full access to HireX's premium ATS features, including candidate management and scheduling interviews.</p>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td align="center">
+                        <a href="http://localhost:3000/employer/dashboard" style="display: inline-block; background-color: ${themeColor}; color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px 0 ${themeColor}60; transition: all 0.2s ease;">Go to Dashboard &rarr;</a>
+                    </td>
+                </tr>
+            </table>
+        ` : `
+            <p style="margin: 0 0 24px 0;">We have reviewed your recent KYC document submission. Unfortunately, we are unable to approve your verification at this time.</p>
+            <div style="background-color: #fef2f2; border-left: 4px solid #ef4444; padding: 20px 24px; border-radius: 0 12px 12px 0; margin-bottom: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                <p style="margin: 0 0 6px 0; font-weight: 700; color: #991b1b; font-size: 14px; text-transform: uppercase;">Reason for Rejection</p>
+                <p style="margin: 0; font-size: 15px; color: #991b1b; line-height: 1.5;">${rejectReason}</p>
+            </div>
+            <p style="margin: 0 0 32px 0;">Please log into your employer dashboard to review the requirements and submit updated documentation.</p>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td align="center">
+                        <a href="http://localhost:3000/employer/kyc" style="display: inline-block; background-color: ${themeColor}; color: #ffffff; text-decoration: none; padding: 16px 36px; border-radius: 8px; font-weight: 600; font-size: 16px; box-shadow: 0 4px 14px 0 ${themeColor}60; transition: all 0.2s ease;">Resubmit Documents &rarr;</a>
+                    </td>
+                </tr>
+            </table>
+        `}
+    `;
+
+    return getBaseTemplate(subject, content, role);
+};
+
+const getApplicationStatusUpdateEmailTemplate = (fullName, jobTitle, companyName, status, role = "candidate") => {
+    const themeColor = getThemeColor(role);
+    
+    let descriptiveMessage = "";
+    if (status === "Shortlisted") {
+        descriptiveMessage = "Congratulations! Your profile has been shortlisted. We will actively review your application and contact you shortly with the schedule for the next process.";
+    } else if (status === "Interview") {
+        descriptiveMessage = "Great news! You have been selected for an interview. Please review your dashboard for any incoming messages or scheduling requests.";
+    } else if (status === "Offer") {
+        descriptiveMessage = "Congratulations! An offer has been extended for this position. Please check your dashboard for further details.";
+    } else if (status === "Rejected") {
+        descriptiveMessage = "Thank you for your interest. While your background is impressive, the team has decided to move forward with other candidates who more closely align with the specific needs of the role at this time.";
+    } else if (status === "Hired") {
+        descriptiveMessage = "Welcome aboard! We are thrilled to let you know that you have been hired for this role.";
+    } else {
+        descriptiveMessage = `The status of your application has been updated to: ${status}.`;
+    }
+
+    const content = `
+        <h2 style="margin: 0 0 20px 0; color: #0f172a; font-size: 24px; font-weight: 800; letter-spacing: -0.5px;">Application Status Update</h2>
+        <p style="margin: 0 0 24px 0;">Dear ${fullName},</p>
+        <p style="margin: 0 0 28px 0;">There has been an update regarding your application for the <strong>${jobTitle}</strong> position at <strong>${companyName}</strong>.</p>
+        
+        <div style="background-color: #f8fafc; border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; margin-bottom: 32px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                    <td width="30%" style="padding-bottom: 12px;"><strong style="color: #1e293b; font-size: 14px;">Current Status:</strong></td>
+                    <td width="70%" style="padding-bottom: 12px; font-weight: 700; color: ${themeColor}; font-size: 15px;">${status.toUpperCase()}</td>
+                </tr>
+            </table>
+            <p style="margin: 16px 0 0 0; font-size: 15px; color: #475569; line-height: 1.6;">${descriptiveMessage}</p>
+        </div>
+
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 32px;">
+            <tr>
+                <td align="center">
+                    <a href="http://localhost:3000/mnjuser/applications" style="display: inline-block; background-color: ${themeColor}; color: #ffffff; text-decoration: none; padding: 14px 28px; border-radius: 8px; font-weight: 600; font-size: 15px; box-shadow: 0 4px 14px 0 ${themeColor}60; transition: all 0.2s ease;">Track Your Application &rarr;</a>
+                </td>
+            </tr>
+        </table>
+        
+        <p style="margin: 0; font-size: 15px; color: #64748b;">Best regards,<br><strong style="color: #334155;">The HireX Team</strong></p>
+    `;
+
+    return getBaseTemplate(`Update: Your application for ${jobTitle}`, content, role);
+};
+
 module.exports = {
     getRegistrationEmailTemplate,
     getLoginAlertEmailTemplate,
-    getPasswordResetEmailTemplate
+    getPasswordResetEmailTemplate,
+    getAdminKycUpdateEmailTemplate,
+    getApplicationStatusUpdateEmailTemplate
 };

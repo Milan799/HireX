@@ -13,16 +13,22 @@ const navItems = [
     href: "/jobs",
     label: "Jobs",
     columns: [
+      // {
+      //   title: "Popular Categories",
+      //   items: [
+      //     { label: "IT Jobs", href: "/jobs?industry=IT Jobs" },
+      //     { label: "Sales Jobs", href: "/jobs?industry=Sales Jobs" },
+      //     { label: "Marketing Jobs", href: "/jobs?industry=Marketing Jobs" },
+      //     { label: "Data Science Jobs", href: "/jobs?industry=Data Science Jobs" },
+      //     { label: "HR Jobs", href: "/jobs?industry=HR Jobs" },
+      //     { label: "Engineering Jobs", href: "/jobs?industry=Engineering Jobs" },
+      //   ]
+      // },
       {
-        title: "Popular Categories",
+        title: "All",
         items: [
-          { label: "IT Jobs", href: "/jobs?industry=it jobs" },
-          { label: "Sales Jobs", href: "/jobs?industry=sales" },
-          { label: "Marketing Jobs", href: "/jobs?industry=marketing" },
-          { label: "Data Science Jobs", href: "/jobs?industry=data-science" },
-          { label: "HR Jobs", href: "/jobs?industry=hr" },
-          { label: "Engineering Jobs", href: "/jobs?industry=engineering" },
-        ]
+          { label: "All Jobs", href: "/jobs" },]
+          
       },
       {
         title: "Jobs by Location",
@@ -32,7 +38,7 @@ const navItems = [
           { label: "Jobs in Bangalore", href: "/jobs?location=Bangalore" },
           { label: "Jobs in Hyderabad", href: "/jobs?location=Hyderabad" },
           { label: "Jobs in Pune", href: "/jobs?location=Pune" },
-          { label: "Remote Jobs", href: "/jobs?type=remote" },
+          { label: "Remote Jobs", href: "/jobs?location=remote" },
         ]
       },
       // {
@@ -100,58 +106,12 @@ const navItems = [
   // },
 ];
 
-const recruiterNavItems = [
-  {
-    href: "/employer/dashboard",
-    label: "Dashboard",
-    columns: [
-      {
-        title: "Overview",
-        items: [
-          { label: "Analytics", href: "/employer/dashboard?tab=analytics" },
-          { label: "Active Jobs", href: "/employer/jobs?status=active" },
-          { label: "Recent Applications", href: "/employer/applications" },
-          { label: "Account Billing", href: "/employer/settings?tab=billing" },
-        ]
-      }
-    ]
-  },
-  {
-    href: "/employer/jobs/new",
-    label: "Post a Job",
-    columns: [
-      {
-        title: "Hiring Solutions",
-        items: [
-          { label: "Standard Posting", href: "/employer/jobs/new?type=standard" },
-          { label: "Premium Posting", href: "/employer/jobs/new?type=premium" },
-          { label: "Bulk Hiring", href: "/employer/jobs/new?type=bulk" },
-          { label: "Internships", href: "/employer/jobs/new?type=internship" },
-        ]
-      }
-    ]
-  },
-  // {
-  //   href: "/employer/resdex",
-  //   label: "Candidates",
-  //   columns: [
-  //     {
-  //       title: "Sourcing",
-  //       items: [
-  //         { label: "Search Resumes", href: "/employer/resdex" },
-  //         { label: "Saved Candidates", href: "/employer/resdex" },
-  //         { label: "AI Matching", href: "/employer/resdex" },
-  //         { label: "Campus Hiring", href: "/employer/resdex" },
-  //       ]
-  //     }
-  //   ]
-  // }
-];
 
 import { FaSearch, FaBell, FaUserCircle, FaBars, FaCrown, FaNewspaper, FaCog, FaQuestionCircle, FaSignOutAlt, FaChevronRight } from "react-icons/fa";
 import { useAppSelector, useAppDispatch } from "@/lib/store/hooks";
 import { clearUser } from "@/lib/store/slices/userSlice";
 import { signOut, useSession } from "next-auth/react";
+import NotificationDropdown from "@/components/common/NotificationDropdown";
 
 // ... existing code ...
 
@@ -243,6 +203,17 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
                   <span className="text-[10px] text-slate-500 dark:text-slate-400">Track your applications</span>
                 </Link>
               )}
+              {user?.role !== "recruiter" && (
+                <Link onClick={() => setProfileDropdownOpen(false)} href="/mnjuser/subscription" className="flex items-center justify-between px-3 py-2 hover:bg-slate-50 text-left rounded-lg dark:hover:bg-slate-900/50 transition-colors">
+                  <div className="flex flex-col">
+                    <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Plan Details</span>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Manage your subscription</span>
+                  </div>
+                  <div className="flex items-center gap-1 text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-amber-100 text-amber-700 dark:bg-amber-900/40 dark:text-amber-400 shadow-sm ring-1 ring-amber-200 dark:ring-amber-800">
+                    {user?.subscription?.plan === "pro" ? "Pro" : "Free"}
+                  </div>
+                </Link>
+              )}
               {/* <Link onClick={() => setProfileDropdownOpen(false)} href={user?.role === "recruiter" ? "/employer/settings" : "/mnjuser/settings"} className="flex items-center px-3 py-2 text-sm font-medium text-slate-700 hover:bg-slate-50 rounded-lg dark:text-slate-300 dark:hover:bg-slate-900/50 transition-colors">Settings</Link> */}
 
 
@@ -264,84 +235,10 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
     signOut({ callbackUrl: "/" });
   };
 
-  // --- PRO PROFILE NAVBAR ---
-  if (pathname === "/pro_profile") {
-    return (
-      <motion.header
-        initial={{ y: -24, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        className="fixed inset-x-0 top-0 z-50 border-b border-amber-500/20 bg-slate-950/80 backdrop-blur-md shadow-lg shadow-amber-900/10"
-      >
-        <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
-          {/* Logo */}
-          <Link href="/mnjuser/homepage" className="group flex items-center gap-2">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-yellow-600 shadow-lg shadow-amber-500/20">
-              <FaCrown className="text-white text-lg" />
-            </div>
-            <span className="flex flex-col leading-tight">
-              <span className="text-xl font-bold tracking-tight text-white">
-                HireX <span className="text-amber-400">Pro</span>
-              </span>
-            </span>
-          </Link>
 
-          {/* Center Links (Hidden on mobile) */}
-          <div className="hidden items-center gap-8 md:flex">
-            {[
-              { name: "Overview", id: "overview" },
-              { name: "Benefits", id: "benefits" },
-              { name: "Plans", id: "plans" }
-            ].map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  const el = document.getElementById(item.id);
-                  if (el) el.scrollIntoView({ behavior: 'smooth' });
-                }}
-                className="text-sm font-medium text-slate-300 hover:text-amber-400 transition-colors relative group"
-              >
-                {item.name}
-                <span className="absolute -bottom-1 left-0 w-0 h-0.5 bg-amber-400 transition-all group-hover:w-full"></span>
-              </button>
-            ))}
-          </div>
-
-          {/* Right Actions */}
-          <div className="flex items-center gap-4">
-            {isMounted && user ? (
-              <div className="relative" onMouseEnter={() => setProfileDropdownOpen(true)} onMouseLeave={() => setProfileDropdownOpen(false)}>
-                <button
-                  className="group flex items-center gap-3 rounded-full border border-slate-800 bg-slate-900 py-1 pl-1 pr-4 shadow-sm hover:border-amber-500/50 transition-all"
-                >
-                  <div className="h-8 w-8 rounded-full bg-slate-800 overflow-hidden border border-slate-700">
-                    <img
-                      src={displayUser?.profilePicture ? `${serverBase}${displayUser.profilePicture}` : `https://ui-avatars.com/api/?name=${displayUser?.fullName || "Guest"}&background=random&color=fff&background=d97706`}
-                      alt={displayUser?.fullName || "Guest"}
-                      className="h-full w-full object-cover"
-                    />
-                  </div>
-                  <IoChevronDown className="text-slate-400 group-hover:text-amber-400 transition-colors" />
-                </button>
-                <ProfileMenuPopUp />
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <Link href="/auth/login" className="text-sm font-bold text-slate-300 hover:text-white transition-colors">Login</Link>
-                <Link href="/auth/register" className="rounded-full bg-linear-to-r from-amber-400 to-amber-600 px-5 py-2 text-xs font-bold text-slate-900 shadow-lg shadow-amber-500/20 hover:scale-105 hover:shadow-amber-500/40 transition-all duration-300">
-                  Get Started
-                </Link>
-              </div>
-            )}
-          </div>
-        </nav>
-
-      </motion.header>
-    );
-  }
-
-  // If user is logged in (either through Session or Redux), show the authenticated navbar
   if (isMounted && (session?.user || user)) {
     const isRecruiter = user?.role === "recruiter";
+    const isPro = !isRecruiter && user?.subscription?.plan === "pro";
 
     const jobSeekerNavItems = [
       {
@@ -362,31 +259,41 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
       ...navItems
     ];
 
-    const activeNavItems = isRecruiter ? recruiterNavItems : jobSeekerNavItems;
-    const homeUrl = isRecruiter ? "/employer/dashboard" : "/mnjuser/homepage";
+    const activeNavItems = isRecruiter ? navItems : jobSeekerNavItems;
 
     return (
       <>
         <motion.header
           initial={{ y: -24, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
-          className={`fixed inset-x-0 top-0 z-30 border-b bg-white/80 backdrop-blur-md shadow-sm dark:bg-slate-950/80 ${isRecruiter ? "border-purple-200 dark:border-purple-900/50" : "border-slate-200 dark:border-slate-800"
-            }`}
+          className={`fixed inset-x-0 top-0 z-30 border-b bg-white/80 backdrop-blur-md shadow-sm dark:bg-slate-950/80 ${isPro ? "border-amber-200 dark:border-amber-900/50" : "border-slate-200 dark:border-slate-800"}`}
         >
           <nav className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex items-center gap-8">
-              <Link href="/" className="group flex items-center gap-2" onClick={close}>
-                <span className="flex flex-col leading-tight">
-                  <motion.span
-                    whileHover={{ scale: 1.03 }}
-                    transition={{ type: "spring", stiffness: 260, damping: 18 }}
-                    className={`bg-linear-to-r ${isRecruiter ? 'from-purple-500 via-fuchsia-500 to-pink-500' : 'from-sky-500 via-blue-500 to-cyan-400'} bg-clip-text text-xl font-bold tracking-tight text-transparent`}
-                  >
-                    Hire<span className="text-slate-950 dark:text-slate-50">X</span>
-                    {isRecruiter && <span className="text-[10px] uppercase ml-1 px-1.5 py-0.5 rounded-full bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300 transform -translate-y-2 inline-block">Employer</span>}
-                  </motion.span>
-                </span>
-              </Link>
+              {isPro ? (
+                 <Link href="/mnjuser/homepage" className="group flex items-center gap-2" onClick={close}>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-400 to-yellow-600 shadow-md shadow-amber-500/20">
+                      <FaCrown className="text-white text-sm" />
+                    </div>
+                    <span className="flex flex-col leading-tight">
+                      <span className="text-xl font-bold tracking-tight text-slate-900 dark:text-white">
+                        HireX <span className="text-amber-500">Pro</span>
+                      </span>
+                    </span>
+                 </Link>
+              ) : (
+                <Link href="/" className="group flex items-center gap-2" onClick={close}>
+                  <span className="flex flex-col leading-tight">
+                    <motion.span
+                      whileHover={{ scale: 1.03 }}
+                      transition={{ type: "spring", stiffness: 260, damping: 18 }}
+                      className={`bg-linear-to-r from-sky-500 via-blue-500 to-cyan-400 bg-clip-text text-xl font-bold tracking-tight text-transparent`}
+                    >
+                      Hire<span className="text-slate-950 dark:text-slate-50">X</span>
+                    </motion.span>
+                  </span>
+                </Link>
+              )}
 
               <div className="hidden h-full items-center gap-1 md:flex" onMouseLeave={() => setHoveredNav(null)}>
                 {activeNavItems.map((link) => {
@@ -402,7 +309,7 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
                       <Link
                         href={link.href}
                         className={`group relative flex items-center gap-1 px-3 py-3 text-sm font-medium transition-colors duration-200 ${isActive || isHovered
-                          ? (isRecruiter ? "text-purple-600 dark:text-purple-400" : "text-blue-600 dark:text-blue-400")
+                          ? "text-blue-600 dark:text-blue-400"
                           : "text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-slate-100"
                           }`}
                       >
@@ -420,8 +327,7 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
                             animate={{ opacity: 1, y: 0 }}
                             exit={{ opacity: 0, y: 10 }}
                             transition={{ duration: 0.2 }}
-                            className={`absolute left-0 top-full z-50 mt-1 w-150 overflow-hidden rounded-xl border bg-white/95 backdrop-blur-xl shadow-2xl dark:bg-slate-950/95 dark:shadow-slate-900/50 ${isRecruiter ? "border-purple-200 shadow-purple-200/50 dark:border-purple-900/50" : "border-slate-200 shadow-slate-200/50 dark:border-slate-800"
-                              }`}
+                            className={`absolute left-0 top-full z-50 mt-1 w-150 overflow-hidden rounded-xl border bg-white/95 backdrop-blur-xl shadow-2xl dark:bg-slate-950/95 dark:shadow-slate-900/50 border-slate-200 shadow-slate-200/50 dark:border-slate-800`}
                           >
                             <div className="flex p-6">
                               {link.columns.map((col, idx) => (
@@ -430,7 +336,7 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
                                   <ul className="space-y-2">
                                     {col.items.map(item => (
                                       <li key={item.label}>
-                                        <Link href={item.href} className={`text-sm text-slate-600 hover:underline dark:text-slate-400 ${isRecruiter ? 'hover:text-purple-600 dark:hover:text-purple-400' : 'hover:text-blue-600 dark:hover:text-blue-400'}`}>
+                                        <Link href={item.href} className={`text-sm text-slate-600 hover:underline dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400`}>
                                           {item.label}
                                         </Link>
                                       </li>
@@ -467,10 +373,7 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
             </div>
 
             <div className="flex items-center gap-4">
-              <button className="flex h-10 w-10 items-center justify-center rounded-full text-slate-500 hover:bg-slate-50 hover:text-blue-600 dark:text-slate-400 dark:hover:bg-slate-900 dark:hover:text-blue-400 relative transition-colors">
-                <FaBell className="text-lg" />
-                <span className="absolute top-2 right-2.5 h-2 w-2 rounded-full bg-red-500 border-2 border-white dark:border-slate-950"></span>
-              </button>
+              <NotificationDropdown />
 
               <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 hidden md:block"></div>
 
@@ -513,8 +416,7 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: -12 }}
                 transition={{ type: "spring", stiffness: 180, damping: 20 }}
-                className={`border-t bg-white/95 shadow-lg dark:bg-slate-950/95 md:hidden ${isRecruiter ? "border-purple-200/70 shadow-purple-200/70 dark:border-purple-800/60" : "border-slate-200/70 shadow-slate-200/70 dark:border-slate-800/60"
-                  }`}
+                className={`border-t bg-white/95 shadow-lg dark:bg-slate-950/95 md:hidden border-slate-200/70 shadow-slate-200/70 dark:border-slate-800/60`}
               >
                 <div className="mx-auto flex max-w-6xl flex-col gap-1 px-4 pb-5 pt-3 sm:px-6 lg:px-8">
                   {activeNavItems.map((link) => (
@@ -522,8 +424,7 @@ export function PublicNavbar({ showSearch = false }: { showSearch?: boolean }) {
                       key={link.href}
                       href={link.href}
                       onClick={close}
-                      className={`rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white ${isRecruiter ? "hover:text-purple-900" : "hover:text-slate-900"
-                        }`}
+                      className={`rounded-xl px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-800/80 dark:hover:text-white hover:text-slate-900`}
                     >
                       {link.label}
                     </Link>

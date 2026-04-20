@@ -6,7 +6,7 @@ import { updateProfile, fetchCurrentUser } from "@/lib/store/slices/userSlice";
 import axiosClient from "@/lib/axios/axiosClientInstance";
 import { notify } from "@/lib/utils";
 import { motion } from "framer-motion";
-import { Building2, Mail, Phone, MapPin, Globe, Save, Loader2, Pencil, X } from "lucide-react";
+import { Building2, Mail, Phone, MapPin, Globe, Save, Loader2, Pencil, X, Camera } from "lucide-react";
 
 const inputClass = "w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 outline-none placeholder-slate-400 focus:border-violet-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-slate-600 dark:focus:border-violet-500/60 dark:hover:bg-white/8";
 const inputClasslong = "w-full rounded-xl border border-slate-200 bg-slate-50 p-3 text-sm text-slate-900 outline-none placeholder-slate-400 focus:border-violet-500 hover:bg-slate-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed dark:border-white/10 dark:bg-white/5 dark:text-white dark:placeholder-slate-600 dark:focus:border-violet-500/60 dark:hover:bg-white/8";
@@ -17,8 +17,31 @@ export default function EmployerProfile() {
   const dispatch = useAppDispatch();
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [uploadingLogo, setUploadingLogo] = useState(false);
 
   const [form, setForm] = useState({ companyName: "", fullName: "", phone: "", city: "", country: "", industry: "", website: "", bio: "" });
+
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files?.[0]) return;
+    const file = e.target.files[0];
+    
+    const formData = new FormData();
+    formData.append("logo", file);
+    
+    setUploadingLogo(true);
+    try {
+      await axiosClient.post("/company/logo", formData, {
+        headers: { "Content-Type": "multipart/form-data" }
+      });
+      await dispatch(fetchCurrentUser()).unwrap();
+      notify("Logo updated successfully!", "success");
+    } catch (err: any) {
+      notify(err?.response?.data?.message || "Failed to upload logo", "error");
+    } finally {
+      setUploadingLogo(false);
+      if (e.target) e.target.value = '';
+    }
+  };
 
   useEffect(() => {
     if (user) {
@@ -111,12 +134,20 @@ export default function EmployerProfile() {
           <div className="relative mb-6 rounded-3xl overflow-hidden border border-slate-200 dark:border-white/8 transition-colors duration-300">
             <div className="h-28 bg-gradient-to-br from-violet-600/40 via-purple-500/30 to-indigo-500/40 dark:from-violet-900/60 dark:via-purple-900/40 dark:to-indigo-900/60 border-b border-slate-200 dark:border-white/5 transition-colors duration-300" />
             <div className="absolute left-6 top-14">
-              <div className="h-20 w-20 overflow-hidden rounded-2xl border-4 border-white dark:border-[#0f0f13] bg-violet-600 dark:bg-violet-900/60 shadow-xl transition-colors duration-300">
+              <div className="group relative h-20 w-20 overflow-hidden rounded-2xl border-4 border-white dark:border-[#0f0f13] shadow-xl transition-colors duration-300">
                 <img
-                  src={`https://ui-avatars.com/api/?name=${encodeURIComponent(user?.companyId?.name || user?.companyName || "C")}&background=6d28d9&color=fff&size=160`}
+                  src={user?.companyId?.logo || `https://ui-avatars.com/api/?name=${encodeURIComponent(user?.companyId?.name || user?.companyName || "C")}&background=6d28d9&color=fff&size=160`}
                   alt="Company"
-                  className="h-full w-full object-cover"
+                  className="h-full w-full object-cover bg-white dark:bg-slate-900"
                 />
+                <label className="absolute inset-0 flex cursor-pointer items-center justify-center bg-black/50 opacity-0 transition-opacity hover:opacity-100 disabled:cursor-not-allowed">
+                  <input type="file" accept="image/*" className="hidden" disabled={uploadingLogo} onChange={handleLogoUpload} />
+                  {uploadingLogo ? (
+                    <Loader2 size={24} className="animate-spin text-white" />
+                  ) : (
+                    <Camera size={24} className="text-white" />
+                  )}
+                </label>
               </div>
             </div>
             <div className="bg-white px-6 pt-14 pb-5 dark:bg-[#0f0f13] transition-colors duration-300">

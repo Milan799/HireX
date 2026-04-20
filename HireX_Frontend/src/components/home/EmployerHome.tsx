@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import axiosClient from "@/lib/axios/axiosClientInstance";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { PublicNavbar } from "@/components/layout/Navbar";
@@ -48,14 +49,12 @@ export default function EmployerHome() {
   useEffect(() => {
     const fetchHomeData = async () => {
       try {
-        const apiUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
-        const res = await fetch(`${apiUrl}/home`);
-        if (res.ok) {
-          const json = await res.json();
-          setData(json);
+        const res = await axiosClient.get("/home");
+        if (res.data) {
+          setData(res.data);
         }
-      } catch (err) {
-        console.error("Failed to fetch home data", err);
+      } catch (err: any) {
+        console.warn("Failed to fetch home data:", err?.message || "Network Error");
       }
     };
     fetchHomeData();

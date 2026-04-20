@@ -77,13 +77,17 @@ exports.verifyPayment = async (req, res) => {
         if (billingCycle === "monthly") endDate.setMonth(endDate.getMonth() + 1);
         if (billingCycle === "yearly") endDate.setFullYear(endDate.getFullYear() + 1);
 
+        const userToUpdate = await Users.findById(userId);
+        const isRecruiter = userToUpdate?.role === "recruiter";
+
         // Upgrade User Subscription
         const updatedUser = await Users.findByIdAndUpdate(userId, {
             "subscription.plan": "pro",
             "subscription.billingCycle": billingCycle,
             "subscription.startDate": startDate,
             "subscription.endDate": endDate,
-            "subscription.interviewsPerDayLimit": 10,
+            "subscription.interviewsPerDayLimit": isRecruiter ? 10 : 0,
+            "subscription.applyJobLimit": !isRecruiter ? 999999 : 0,
             "subscription.isActive": true
         }, { new: true }).select("-password");
 

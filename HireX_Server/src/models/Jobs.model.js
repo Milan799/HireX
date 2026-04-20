@@ -14,6 +14,7 @@ const jobSchema = new mongoose.Schema(
         status:          { type: String, enum: ["Active", "Closed"], default: "Active" },
         tags:            { type: [String], default: [] },
         employerId:      { type: mongoose.Schema.Types.ObjectId, ref: "Users", required: true },
+        companyRating:   { type: Number, default: 0 },
         views:           { type: Number, default: 0 }, // Track profile views for analytics
     },
     { timestamps: true }

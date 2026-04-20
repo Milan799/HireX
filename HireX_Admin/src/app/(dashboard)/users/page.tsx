@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { useSession } from "next-auth/react";
-import { Trash2, Search, User as UserIcon, Calendar, MapPin, Briefcase } from "lucide-react";
+import { Trash2, Search, User as UserIcon, Calendar, MapPin, Briefcase, Phone, Mail, User } from "lucide-react";
 
 export default function AdminUsersPage() {
   const { data: session } = useSession();
@@ -88,9 +88,11 @@ export default function AdminUsersPage() {
               <tr>
                 <th className="px-8 py-5">Profile</th>
                 <th className="px-6 py-5">Location</th>
+                <th className="px-6 py-5">Phone Number</th>
+                <th className="px-6 py-5">Gender</th>
                 <th className="px-6 py-5">Experience</th>
                 <th className="px-6 py-5">Registered</th>
-                <th className="px-8 py-5 text-right">Actions</th>
+                {/* <th className="px-8 py-5 text-right">Actions</th> */}
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100/50 dark:divide-slate-800/50">
@@ -130,9 +132,21 @@ export default function AdminUsersPage() {
                         )}
                       </div>
                     </td>
+                     <td className="px-6 py-5">
+                       <div className="flex items-center text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100/50 dark:bg-slate-800/50 w-max px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                          <Phone size={12} className="mr-2 text-slate-400 group-hover:text-blue-500 transition-colors" />
+                         {user.phone}
+                       </div>
+                    </td>
+                     <td className="px-6 py-5">
+                       <div className="flex items-center text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100/50 dark:bg-slate-800/50 w-max px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
+                         <User size={12} className="mr-2 text-slate-400 group-hover:text-blue-500 transition-colors" /> 
+                         {user.gender}
+                       </div>
+                    </td>
                     <td className="px-6 py-5">
                        <div className="flex items-center text-sm font-medium text-slate-600 dark:text-slate-300 bg-slate-100/50 dark:bg-slate-800/50 w-max px-3 py-1.5 rounded-xl border border-slate-200/50 dark:border-slate-700/50">
-                         <Briefcase size={14} className="mr-2 text-indigo-400" />
+                         <Briefcase size={14} className="mr-2 text-indigo-400" /> 
                          {user.experienceYears} Years
                        </div>
                     </td>
@@ -142,7 +156,7 @@ export default function AdminUsersPage() {
                          {new Date(user.createdAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
                       </div>
                     </td>
-                    <td className="px-8 py-5 text-right">
+                    {/* <td className="px-8 py-5 text-right">
                       <button
                         onClick={() => handleDelete(user._id)}
                         className="p-2.5 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-500/10 rounded-xl transition-all duration-300 border border-transparent hover:border-red-200 dark:hover:border-red-500/20 group-hover:opacity-100 opacity-60"
@@ -150,7 +164,7 @@ export default function AdminUsersPage() {
                       >
                         <Trash2 size={18} />
                       </button>
-                    </td>
+                    </td> */}
                   </tr>
                 ))
               )}
